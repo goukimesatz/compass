@@ -1,0 +1,1478 @@
+<!DOCTYPE html>
+<html lang="ko" class="h-full select-none">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>CommPass - 스마트폰 어플리케이션</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts: Inter & Noto Sans KR -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+  <!-- QRCode.js Library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+              800: '#1e40af',
+              900: '#1e3a8a',
+            },
+            tealBrand: {
+              500: '#0d9488',
+              600: '#0f766e',
+            },
+            amberAccent: {
+              500: '#f59e0b',
+              600: '#d97706',
+            },
+            emeraldSuccess: {
+              500: '#10b981',
+              600: '#059669',
+            },
+            roseError: {
+              500: '#ef4444',
+              600: '#dc2626',
+            }
+          },
+          fontFamily: {
+            sans: ['-apple-system', 'BlinkMacSystemFont', 'Inter', 'Noto Sans KR', 'sans-serif'],
+          },
+          boxShadow: {
+            'app-tab': '0 -4px 20px rgba(0, 0, 0, 0.06)',
+            'app-card': '0 4px 16px rgba(0, 0, 0, 0.04)',
+            'sheet': '0 -10px 40px rgba(0, 0, 0, 0.2)',
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+      background-color: #0f172a;
+    }
+
+    /* Strict 9:16 Smartphone Container */
+    .phone-container {
+      width: 410px;
+      max-width: 96vw;
+      height: 730px;
+      max-height: 94vh;
+      aspect-ratio: 9 / 16;
+      border-radius: 44px;
+      box-shadow: 0 0 0 12px #1e293b, 0 25px 60px -15px rgba(0, 0, 0, 0.6);
+      position: relative;
+      overflow: hidden;
+      margin: auto;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* Fullscreen view when toggled */
+    .phone-container.fullscreen-mode {
+      width: 100% !important;
+      max-width: 100% !important;
+      height: 100vh !important;
+      max-height: 100vh !important;
+      aspect-ratio: auto !important;
+      border-radius: 0 !important;
+      box-shadow: none !important;
+    }
+
+    /* iOS Home Bar */
+    .home-indicator {
+      width: 134px;
+      height: 5px;
+      background-color: #cbd5e1;
+      border-radius: 3px;
+      margin: 6px auto 4px auto;
+    }
+    .dark .home-indicator {
+      background-color: #475569;
+    }
+
+    /* Custom Scrollbar for Phone Body */
+    .app-scrollbar::-webkit-scrollbar {
+      width: 0px;
+      height: 0px;
+    }
+
+    /* Active Feedback */
+    .active-press:active {
+      transform: scale(0.96);
+      opacity: 0.9;
+      transition: transform 0.1s ease;
+    }
+
+    /* Smooth Slide Bottom Sheet */
+    .sheet-transition {
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* Pulse Badges */
+    @keyframes pulseRing {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.6; transform: scale(1.15); }
+    }
+    .badge-pulse {
+      animation: pulseRing 2s ease-in-out infinite;
+    }
+  </style>
+</head>
+<body class="h-full flex flex-col justify-center items-center p-0 sm:p-4 font-sans text-slate-900 dark:text-slate-100 overflow-hidden">
+
+  <!-- TOP FRAME CONTROL TOOLBAR (DESKTOP MODE) -->
+  <div class="hidden sm:flex items-center justify-between w-full max-w-[410px] mb-2 px-2 text-xs text-slate-300">
+    <div class="flex items-center gap-2">
+      <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+      <span class="font-extrabold text-white tracking-wide">CommPass (세로 9:16)</span>
+    </div>
+    <div class="flex items-center gap-2">
+      <button onclick="toggleFullscreen()" id="btnFullscreen" class="hover:text-white transition-colors bg-slate-800 px-2.5 py-1 rounded-xl border border-slate-700 text-[11px] font-bold">
+        <i class="fa-solid fa-expand mr-1"></i>전체화면
+      </button>
+      <button onclick="toggleTheme()" class="hover:text-white transition-colors bg-slate-800 px-2.5 py-1 rounded-xl border border-slate-700 text-[11px] font-bold">
+        <i class="fa-solid fa-moon dark:hidden"></i>
+        <i class="fa-solid fa-sun hidden dark:inline text-amber-400"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- SMARTPHONE CONTAINER (9:16 ASPECT RATIO) -->
+  <div id="phoneDevice" class="phone-container bg-slate-50 dark:bg-slate-950 flex flex-col select-none">
+
+    <!-- SMARTPHONE STATUS BAR (TOP NOTCH) -->
+    <div class="sticky top-0 z-50 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md pt-3 px-5 pb-1.5 flex justify-between items-center text-xs font-semibold select-none border-b border-slate-100 dark:border-slate-800/80 shrink-0">
+      <span id="phoneClock" class="font-black text-slate-900 dark:text-white text-[12px]">09:41</span>
+
+      <!-- Dynamic Notch Island -->
+      <div class="w-20 h-4 bg-slate-900 dark:bg-black rounded-full flex items-center justify-center gap-1.5 px-2">
+        <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
+        <div class="w-1.5 h-1.5 rounded-full bg-indigo-500"></div>
+      </div>
+
+      <div class="flex items-center gap-1.5 text-slate-700 dark:text-slate-300 text-[11px]">
+        <i class="fa-solid fa-signal"></i>
+        <i class="fa-solid fa-wifi"></i>
+        <i class="fa-solid fa-battery-full text-emerald-500"></i>
+      </div>
+    </div>
+
+    <!-- APP HEADER -->
+    <header class="bg-white dark:bg-slate-900 px-4 py-2 border-b border-slate-200/80 dark:border-slate-800 flex items-center justify-between shrink-0 shadow-sm z-30">
+      <div class="flex items-center gap-2 cursor-pointer" onclick="switchTab('visa')">
+        <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-brand-800 to-indigo-600 flex items-center justify-center text-white font-black text-xs shadow-sm">
+          CP
+        </div>
+        <div>
+          <h1 class="font-black text-xs leading-tight text-slate-900 dark:text-white">CommPass</h1>
+          <p class="text-[9px] text-brand-600 dark:text-blue-400 font-extrabold" id="roleBadgeText">외국인 회원 모드</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-1.5">
+        <!-- Role Switcher -->
+        <button onclick="switchRole()" class="px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-[10px] font-bold border border-slate-200 dark:border-slate-700 active-press flex items-center gap-1">
+          <i class="fa-solid fa-arrows-rotate text-brand-600 dark:text-blue-400"></i>
+          <span id="roleButtonLabel">외국인</span>
+        </button>
+
+        <!-- Language Selector -->
+        <select onchange="changeLanguage(this.value)" class="bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-[10px] font-bold rounded-full px-2 py-1 border border-slate-200 dark:border-slate-700 focus:outline-none cursor-pointer">
+          <option value="ko">🇰🇷 KO</option>
+          <option value="en">🇺🇸 EN</option>
+          <option value="vi">🇻🇳 VI</option>
+          <option value="th">🇹🇭 TH</option>
+          <option value="id">🇮🇩 ID</option>
+          <option value="zh">🇨🇳 ZH</option>
+        </select>
+      </div>
+    </header>
+
+    <!-- MAIN SCROLLABLE BODY -->
+    <main class="flex-1 overflow-y-auto app-scrollbar p-3 space-y-3.5 pb-20">
+
+      <!-- ========================================== -->
+      <!-- TAB 1: VISA CENTER (비자 센터) -->
+      <!-- ========================================== -->
+      <section id="tab-visa" class="tab-content space-y-3">
+        
+        <!-- MAIN VISA CARD -->
+        <div class="bg-gradient-to-br from-slate-900 via-slate-800 to-brand-900 text-white rounded-3xl p-4 shadow-lg border border-slate-700 relative overflow-hidden">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-[9px] font-extrabold px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-amber-400 badge-pulse"></span>
+              체류자격 변경 권장
+            </span>
+            <span class="text-[9px] text-slate-400">ARC: 100811-4******</span>
+          </div>
+
+          <div class="flex items-baseline justify-between my-1">
+            <div>
+              <div class="text-[10px] text-slate-300">현재 체류 자격</div>
+              <div class="text-lg font-black text-white">D-2 유학 (Student)</div>
+            </div>
+            <div class="text-right">
+              <div class="text-[9px] text-slate-400">만료: 2027.02.28</div>
+              <div class="text-xl font-black text-amber-400">D-215일</div>
+            </div>
+          </div>
+
+          <div class="mt-2.5 bg-white/10 backdrop-blur-md rounded-2xl p-2 border border-white/10 text-[10px] flex items-center gap-2">
+            <i class="fa-solid fa-triangle-exclamation text-amber-400 text-xs"></i>
+            <span class="text-slate-200">정규직 취업 시 D-10/E-7 체류자격 변경 사전 허가 필수</span>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2 mt-3">
+            <button onclick="openOcrModal()" class="py-2 px-2 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-[11px] font-bold active-press shadow-md flex items-center justify-center gap-1.5">
+              <i class="fa-solid fa-id-card"></i> ARC OCR 촬영
+            </button>
+            <button onclick="openDiagnosisModal()" class="py-2 px-2 rounded-xl bg-white/15 hover:bg-white/20 text-white text-[11px] font-bold active-press border border-white/15 flex items-center justify-center gap-1.5">
+              <i class="fa-solid fa-compass"></i> 5문항 진단
+            </button>
+          </div>
+        </div>
+
+        <!-- DIAGNOSIS RESULT PATH -->
+        <div class="bg-white dark:bg-slate-900 rounded-3xl p-3.5 border border-slate-200/80 dark:border-slate-800 shadow-app-card space-y-2">
+          <div class="flex items-center justify-between">
+            <h3 class="font-black text-xs text-slate-900 dark:text-white flex items-center gap-1.5">
+              <i class="fa-solid fa-diagram-project text-brand-600 dark:text-blue-400"></i>
+              <span>취업 가능성 진단 경로</span>
+            </h3>
+            <span class="text-[9px] font-bold text-brand-600 dark:text-blue-400 bg-brand-50 dark:bg-brand-950/60 px-2 py-0.5 rounded-md">목표: 제조업</span>
+          </div>
+
+          <div class="flex gap-1.5 overflow-x-auto app-scrollbar py-1">
+            <div class="min-w-[95px] p-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-center shrink-0">
+              <div class="text-[8px] text-emerald-600 dark:text-emerald-400 font-bold">1단계 완료</div>
+              <div class="text-[10px] font-bold text-slate-800 dark:text-slate-200">D-2 유학</div>
+            </div>
+            <div class="min-w-[95px] p-2 rounded-xl bg-blue-50 dark:bg-blue-950/40 border border-blue-400 text-center shrink-0 ring-2 ring-blue-500">
+              <div class="text-[8px] text-blue-600 dark:text-blue-400 font-bold">2단계 진행중</div>
+              <div class="text-[10px] font-bold text-slate-800 dark:text-slate-200">TOPIK 3급+</div>
+            </div>
+            <div class="min-w-[95px] p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-center shrink-0 opacity-60">
+              <div class="text-[8px] text-slate-400">3단계</div>
+              <div class="text-[10px] font-medium text-slate-600 dark:text-slate-300">D-10 구직</div>
+            </div>
+            <div class="min-w-[95px] p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-center shrink-0 opacity-60">
+              <div class="text-[8px] text-slate-400">4단계</div>
+              <div class="text-[10px] font-medium text-slate-600 dark:text-slate-300">E-7 비자</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ACTION CHECKLIST SECTION -->
+        <div class="bg-white dark:bg-slate-900 rounded-3xl p-3.5 border border-slate-200/80 dark:border-slate-800 shadow-app-card space-y-2.5">
+          <div class="flex items-center justify-between">
+            <h3 class="font-bold text-xs text-slate-900 dark:text-white flex items-center gap-1.5">
+              <i class="fa-solid fa-list-check text-emerald-500"></i>
+              <span>지금 해야 할 일 (Checklist)</span>
+            </h3>
+            <span class="text-xs font-black text-brand-600 dark:text-blue-400" id="checklistProgressText">44%</span>
+          </div>
+
+          <div class="w-full bg-slate-100 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
+            <div id="checklistProgressBar" class="bg-gradient-to-r from-brand-600 to-emerald-500 h-full rounded-full transition-all duration-300" style="width: 44%"></div>
+          </div>
+
+          <!-- Focal Task Highlight Box -->
+          <div class="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-slate-800 dark:to-indigo-950/50 p-2.5 rounded-2xl border border-blue-200 dark:border-indigo-900/60 space-y-1.5">
+            <div class="flex items-start gap-2">
+              <div class="w-6 h-6 rounded-lg bg-brand-600 text-white flex items-center justify-center shrink-0 font-bold text-[10px]">
+                <i class="fa-solid fa-star"></i>
+              </div>
+              <div class="min-w-0 flex-1">
+                <span class="text-[8px] font-extrabold text-brand-700 dark:text-blue-300 uppercase block">최우선 해결 과제</span>
+                <div class="text-xs font-bold text-slate-900 dark:text-white truncate">TOPIK 한국어 성적표 등록 (Level 3+)</div>
+              </div>
+            </div>
+            <button onclick="triggerFocalTask()" class="w-full py-1.5 bg-brand-600 hover:bg-brand-500 text-white rounded-xl font-bold text-[11px] shadow-sm active-press flex items-center justify-center gap-1">
+              <span>성적표 등록하고 비자 점수 확보</span>
+              <i class="fa-solid fa-arrow-right text-[9px]"></i>
+            </button>
+          </div>
+
+          <!-- Dynamic Checklist Items -->
+          <div class="space-y-1 text-xs" id="checklistContainer">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+
+        <!-- DOCUMENT LOCKER -->
+        <div class="bg-white dark:bg-slate-900 rounded-3xl p-3.5 border border-slate-200/80 dark:border-slate-800 shadow-app-card space-y-2">
+          <div class="flex items-center justify-between">
+            <h3 class="font-bold text-xs text-slate-900 dark:text-white flex items-center gap-1.5">
+              <i class="fa-solid fa-folder-closed text-indigo-500"></i>
+              <span>서류 보관함 (4/9 등록)</span>
+            </h3>
+            <button onclick="openUploadModal()" class="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-[10px] font-bold text-brand-600 dark:text-blue-400 active-press">
+              + 추가
+            </button>
+          </div>
+
+          <div class="grid grid-cols-2 gap-1.5" id="documentGrid">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+
+        <!-- HELPLINE & EXPERT CONNECT -->
+        <div class="bg-gradient-to-r from-blue-600 to-indigo-700 text-white rounded-3xl p-3 shadow-md text-xs space-y-1.5">
+          <div class="flex items-center justify-between">
+            <span class="font-black flex items-center gap-1.5 text-xs">
+              <i class="fa-solid fa-headset"></i> 1345 외국인 종합안내센터
+            </span>
+            <span class="text-[8px] bg-white/20 px-2 py-0.5 rounded-full font-bold">20개국어 지원</span>
+          </div>
+          <p class="text-[9.5px] text-blue-100">법무부 출입국 외국인관서 직통 연결 상담</p>
+          <div class="grid grid-cols-2 gap-2 pt-0.5">
+            <a href="tel:1345" class="bg-white/15 hover:bg-white/25 py-1.5 rounded-xl text-center font-bold active-press text-[10px]">
+              <i class="fa-solid fa-phone mr-1"></i> 전화 연결
+            </a>
+            <button onclick="openHiKorea()" class="bg-white/15 hover:bg-white/25 py-1.5 rounded-xl text-center font-bold active-press text-[10px]">
+              <i class="fa-solid fa-globe mr-1"></i> 하이코리아
+            </button>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ========================================== -->
+      <!-- TAB 2: EDUCATION & EXAMS (교육/이수증) -->
+      <!-- ========================================== -->
+      <section id="tab-edu" class="tab-content hidden space-y-3">
+        
+        <div class="bg-white dark:bg-slate-900 rounded-3xl p-3.5 border border-slate-200/80 dark:border-slate-800 shadow-app-card space-y-2.5">
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="font-black text-xs text-slate-900 dark:text-white">온라인 필수 교육 & 이수증</h2>
+              <p class="text-[9px] text-slate-500">교육 100% 이수 및 평가 시험 합격 시 QR 이수증 자동 발급</p>
+            </div>
+            <button onclick="openExamModal()" class="px-2.5 py-1 bg-emerald-600 text-white font-bold text-[10px] rounded-xl active-press shadow-sm">
+              시험 응시
+            </button>
+          </div>
+
+          <!-- COURSE CARD 1 -->
+          <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-1.5">
+            <div class="flex items-center justify-between text-[9px]">
+              <span class="px-2 py-0.5 rounded-full font-bold bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300">법정 의무</span>
+              <span class="text-emerald-600 dark:text-emerald-400 font-bold"><i class="fa-solid fa-circle-check mr-0.5"></i>100% 완료</span>
+            </div>
+            <h3 class="font-bold text-xs text-slate-900 dark:text-white">제조업 외국인 근로자 필수 산업안전보건교육</h3>
+            <div class="w-full bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden">
+              <div class="bg-emerald-500 h-full rounded-full" style="width: 100%"></div>
+            </div>
+            <div class="flex gap-2 pt-1">
+              <button onclick="playVideo('제조업 산업안전보건')" class="flex-1 py-1 rounded-xl bg-slate-200 dark:bg-slate-700 text-[10px] font-bold active-press text-center">
+                <i class="fa-solid fa-play mr-1"></i> 복습하기
+              </button>
+              <button onclick="showCert('제조업 산업안전 보건교육', 'BK-2026-SAF-9942')" class="flex-1 py-1 rounded-xl bg-brand-600 text-white text-[10px] font-bold active-press text-center shadow-sm">
+                <i class="fa-solid fa-file-pdf mr-1"></i> PDF/QR 이수증
+              </button>
+            </div>
+          </div>
+
+          <!-- COURSE CARD 2 -->
+          <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-1.5">
+            <div class="flex items-center justify-between text-[9px]">
+              <span class="px-2 py-0.5 rounded-full font-bold bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300">한국어</span>
+              <span class="text-brand-600 dark:text-blue-400 font-bold">진도율 75%</span>
+            </div>
+            <h3 class="font-bold text-xs text-slate-900 dark:text-white">실전 비즈니스 한국어 (TOPIK 3급 대비)</h3>
+            <div class="w-full bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden">
+              <div class="bg-brand-600 h-full rounded-full" style="width: 75%"></div>
+            </div>
+            <button onclick="playVideo('비즈니스 한국어 8강')" class="w-full py-1.5 rounded-xl bg-brand-600 text-white text-[10px] font-bold active-press text-center shadow-sm">
+              <i class="fa-solid fa-play mr-1"></i> 8강 이어보기
+            </button>
+          </div>
+        </div>
+
+        <!-- ISSUED CERTIFICATES -->
+        <div class="bg-white dark:bg-slate-900 rounded-3xl p-3.5 border border-slate-200/80 dark:border-slate-800 shadow-app-card space-y-2">
+          <h3 class="font-bold text-xs text-slate-900 dark:text-white">내 발급 이수증 (QR 검증)</h3>
+          <div class="p-2.5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <div class="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold text-xs">
+                <i class="fa-solid fa-award"></i>
+              </div>
+              <div>
+                <div class="text-xs font-bold">산업안전 보건 이수증</div>
+                <div class="text-[8px] text-slate-400">발급: BK-2026-SAF-9942</div>
+              </div>
+            </div>
+            <button onclick="showCert('제조업 산업안전 보건교육', 'BK-2026-SAF-9942')" class="text-xs text-brand-600 font-bold active-press">
+              보기 / QR
+            </button>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ========================================== -->
+      <!-- TAB 3: AI JOBS (채용 정보) -->
+      <!-- ========================================== -->
+      <section id="tab-jobs" class="tab-content hidden space-y-3">
+        
+        <div class="bg-white dark:bg-slate-900 rounded-3xl p-3.5 border border-slate-200/80 dark:border-slate-800 shadow-app-card space-y-2.5">
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="font-black text-xs text-slate-900 dark:text-white">AI 맞춤 채용 추천</h2>
+              <p class="text-[9px] text-slate-500">D-2/D-10/E-7 비자 맞춤 승인 지원 기업</p>
+            </div>
+            <button onclick="openAiResumeModal()" class="px-2 py-1 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold text-[9px] rounded-xl shadow-sm active-press flex items-center gap-1">
+              <i class="fa-solid fa-wand-magic-sparkles"></i> AI 자소서
+            </button>
+          </div>
+
+          <!-- JOB CARDS -->
+          <div class="space-y-2.5">
+            <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-1.5">
+              <div class="flex items-center justify-between">
+                <span class="px-2 py-0.5 rounded-full text-[8px] font-black bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+                  AI 적합도 94%
+                </span>
+                <span class="text-[9px] text-slate-400">(주)한성정밀공업</span>
+              </div>
+              <h3 class="font-bold text-xs text-slate-900 dark:text-white">정밀 기계 부품 조립 및 품질 검사원 (E-7 비자 지원)</h3>
+              <div class="flex flex-wrap gap-1 text-[9px] text-slate-500">
+                <span class="px-1.5 py-0.5 rounded bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600">경기 화성</span>
+                <span class="px-1.5 py-0.5 rounded bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600">월 280만원</span>
+                <span class="px-1.5 py-0.5 rounded bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300">기숙사 무료</span>
+              </div>
+              <button onclick="applyJob('(주)한성정밀공업')" class="w-full py-1.5 rounded-xl bg-brand-600 text-white text-[11px] font-bold active-press shadow-sm">
+                1-Click 바로 지원하기
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      
+      <!-- ========================================== -->
+      <!-- TAB 4: COMMUNITY & MESSAGES (pot 커뮤니티 통합) -->
+      <!-- ========================================== -->
+      <section id="tab-community" class="tab-content hidden space-y-3">
+        
+        <!-- COMMUNITY SUB NAVIGATION -->
+        <div class="bg-white dark:bg-slate-900 rounded-2xl p-1 border border-slate-200/80 dark:border-slate-800 shadow-sm flex text-xs font-bold">
+          <button onclick="switchCommunitySubTab('posts')" id="btn-sub-posts" class="flex-1 py-1.5 rounded-xl bg-brand-600 text-white text-center transition-all">
+            <i class="fa-solid fa-comments mr-1"></i>커뮤니티
+          </button>
+          <button onclick="switchCommunitySubTab('messages')" id="btn-sub-messages" class="flex-1 py-1.5 rounded-xl text-slate-500 dark:text-slate-400 text-center transition-all">
+            <i class="fa-solid fa-paper-plane mr-1"></i>메시지
+          </button>
+          <button onclick="switchCommunitySubTab('reviews')" id="btn-sub-reviews" class="flex-1 py-1.5 rounded-xl text-slate-500 dark:text-slate-400 text-center transition-all">
+            <i class="fa-solid fa-building mr-1"></i>기업 리뷰
+          </button>
+        </div>
+
+        <!-- 1. POSTS VIEW -->
+        <div id="comm-subview-posts" class="space-y-2.5">
+          <!-- Category Pills & Write Button -->
+          <div class="flex items-center justify-between gap-1">
+            <div class="flex gap-1 overflow-x-auto app-scrollbar py-0.5 text-[10px] font-bold">
+              <button onclick="filterPosts('전체')" class="category-btn px-2.5 py-1 rounded-full bg-brand-600 text-white shrink-0" data-cat="전체">전체</button>
+              <button onclick="filterPosts('비자·법률')" class="category-btn px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 shrink-0" data-cat="비자·법률">비자·법률</button>
+              <button onclick="filterPosts('취업·이직')" class="category-btn px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 shrink-0" data-cat="취업·이직">취업·이직</button>
+              <button onclick="filterPosts('K-회사생활')" class="category-btn px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 shrink-0" data-cat="K-회사생활">K-회사생활</button>
+            </div>
+            <button onclick="openCreatePostModal()" class="px-2.5 py-1 bg-brand-600 text-white text-[10px] font-bold rounded-xl active-press shadow-sm shrink-0 flex items-center gap-1">
+              <i class="fa-solid fa-pen"></i> 글쓰기
+            </button>
+          </div>
+
+          <!-- Dynamic Post Feed -->
+          <div class="space-y-2" id="postFeedContainer">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+
+        <!-- 2. MESSAGES VIEW -->
+        <div id="comm-subview-messages" class="hidden space-y-2">
+          <div class="p-2 rounded-2xl bg-slate-100 dark:bg-slate-800/60 text-[9px] text-slate-500 text-center">
+            <i class="fa-solid fa-shield-halved mr-1 text-emerald-500"></i>현직자 멘토 및 외국인 동료와 1:1 대화를 나눠보세요.
+          </div>
+          <div class="space-y-1.5" id="chatListContainer">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+
+        <!-- 3. REVIEWS VIEW -->
+        <div id="comm-subview-reviews" class="hidden space-y-2.5">
+          <div id="companyReviewsContainer" class="space-y-2.5">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ========================================== -->
+      <!-- TAB 5: AI TUTOR & ASSISTANT -->
+      <!-- ========================================== -->
+      <section id="tab-ai" class="tab-content hidden space-y-2.5">
+        
+        <div class="bg-gradient-to-r from-indigo-900 to-purple-900 text-white rounded-3xl p-3 shadow-md flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-2xl bg-white/10 flex items-center justify-center text-amber-300 text-sm">
+            <i class="fa-solid fa-robot"></i>
+          </div>
+          <div>
+            <h2 class="font-bold text-xs">Bridge Korea AI 튜터</h2>
+            <p class="text-[9px] text-indigo-200">비자 법령 및 한국 생활 실시간 상담</p>
+          </div>
+        </div>
+
+        <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 h-[280px] flex flex-col overflow-hidden shadow-app-card">
+          <div class="flex-1 p-3 overflow-y-auto space-y-2 app-scrollbar text-xs" id="chatBox">
+            <div class="flex items-start gap-2">
+              <div class="w-5 h-5 rounded-full bg-indigo-600 text-white flex items-center justify-center text-[9px] shrink-0">
+                <i class="fa-solid fa-robot"></i>
+              </div>
+              <div class="bg-slate-100 dark:bg-slate-800 p-2 rounded-2xl rounded-tl-none max-w-[85%] text-slate-800 dark:text-slate-200 text-[10px] leading-relaxed">
+                안녕하세요 아민님! 비자 변경 및 한국어 교육에 대해 궁금한 점을 질문해 보세요.
+              </div>
+            </div>
+          </div>
+
+          <div class="p-1.5 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 flex items-center gap-1">
+            <input type="text" id="chatInput" placeholder="질문을 입력하세요..." class="flex-1 px-3 py-1.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-[10px] focus:outline-none" onkeydown="if(event.key==='Enter') sendAiMessage()">
+            <button onclick="sendAiMessage()" class="w-7 h-7 bg-indigo-600 text-white rounded-xl active-press flex items-center justify-center shrink-0 text-xs">
+              <i class="fa-solid fa-paper-plane"></i>
+            </button>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ========================================== -->
+      <!-- EMPLOYER DASHBOARD VIEW -->
+      <!-- ========================================== -->
+      <section id="tab-employer" class="tab-content hidden space-y-3">
+        
+        <div class="bg-white dark:bg-slate-900 rounded-3xl p-3.5 border border-slate-200/80 dark:border-slate-800 shadow-app-card space-y-2.5">
+          <div class="flex justify-between items-center">
+            <div>
+              <span class="text-[8px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">기업회원 모드</span>
+              <h2 class="font-bold text-xs text-slate-900 dark:text-white mt-0.5">(주)한성정밀공업</h2>
+            </div>
+            <button onclick="showToast('새 공고 등록 화면으로 이동합니다.')" class="px-2 py-1 bg-brand-600 text-white text-[9px] font-bold rounded-xl active-press">
+              + 공고 등록
+            </button>
+          </div>
+
+          <div class="grid grid-cols-3 gap-1.5 text-center text-xs">
+            <div class="p-2 rounded-xl bg-slate-50 dark:bg-slate-800">
+              <div class="text-[8px] text-slate-400">진행 공고</div>
+              <div class="font-black text-xs text-slate-900 dark:text-white">3건</div>
+            </div>
+            <div class="p-2 rounded-xl bg-slate-50 dark:bg-slate-800">
+              <div class="text-[8px] text-slate-400">총 지원자</div>
+              <div class="font-black text-xs text-brand-600">18명</div>
+            </div>
+            <div class="p-2 rounded-xl bg-slate-50 dark:bg-slate-800">
+              <div class="text-[8px] text-slate-400">AI 적합인재</div>
+              <div class="font-black text-xs text-emerald-600">12명</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white dark:bg-slate-900 rounded-3xl p-3.5 border border-slate-200/80 dark:border-slate-800 shadow-app-card space-y-2">
+          <h3 class="font-bold text-xs text-slate-900 dark:text-white">지원자 및 이수증 검증</h3>
+          <div class="p-2.5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 space-y-1.5">
+            <div class="flex justify-between items-center">
+              <div class="font-bold text-xs">아민 (Nguyen Amin)</div>
+              <span class="text-[9px] font-bold text-brand-600">AI 적합도 94%</span>
+            </div>
+            <div class="text-[9px] text-slate-500">D-2 유학 | TOPIK 3급 | 베트남</div>
+            <div class="flex justify-between items-center pt-1 border-t border-slate-200 dark:border-slate-700">
+              <span class="text-[8px] px-2 py-0.5 rounded bg-emerald-100 text-emerald-700 font-bold">
+                <i class="fa-solid fa-check-circle mr-0.5"></i>산업안전 검증 완료
+              </span>
+              <button onclick="showCert('제조업 산업안전 보건교육', 'BK-2026-SAF-9942')" class="text-[10px] font-bold text-brand-600 active-press">
+                이수증 검토
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+    </main>
+
+    <!-- SMARTPHONE BOTTOM TAB BAR -->
+    <nav id="bottomNavBar" class="absolute bottom-0 inset-x-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200/80 dark:border-slate-800 px-2 py-1 flex justify-around items-center z-40 shadow-app-tab">
+      <button onclick="switchTab('visa')" id="nav-visa" class="nav-btn flex-1 flex flex-col items-center justify-center py-1 text-brand-600 dark:text-blue-400 font-bold active-press">
+        <i class="fa-solid fa-passport text-base mb-0.5"></i>
+        <span class="text-[8px]">비자센터</span>
+      </button>
+
+      <button onclick="switchTab('edu')" id="nav-edu" class="nav-btn flex-1 flex flex-col items-center justify-center py-1 text-slate-400 dark:text-slate-500 active-press">
+        <i class="fa-solid fa-graduation-cap text-base mb-0.5"></i>
+        <span class="text-[8px]">교육&시험</span>
+      </button>
+
+      <button onclick="switchTab('jobs')" id="nav-jobs" class="nav-btn flex-1 flex flex-col items-center justify-center py-1 text-slate-400 dark:text-slate-500 active-press">
+        <i class="fa-solid fa-briefcase text-base mb-0.5"></i>
+        <span class="text-[8px]">채용정보</span>
+      </button>
+
+      <button onclick="switchTab('community')" id="nav-community" class="nav-btn flex-1 flex flex-col items-center justify-center py-1 text-slate-400 dark:text-slate-500 active-press">
+        <i class="fa-solid fa-comments text-base mb-0.5"></i>
+        <span class="text-[8px]">커뮤니티</span>
+      </button>
+
+      <button onclick="switchTab('ai')" id="nav-ai" class="nav-btn flex-1 flex flex-col items-center justify-center py-1 text-slate-400 dark:text-slate-500 active-press">
+        <i class="fa-solid fa-robot text-base mb-0.5"></i>
+        <span class="text-[8px]">AI튜터</span>
+      </button>
+    </nav>
+
+    <!-- iOS HOME INDICATOR -->
+    <div class="absolute bottom-0 inset-x-0 pointer-events-none pb-0.5 z-50">
+      <div class="home-indicator"></div>
+    </div>
+
+  </div>
+
+  <!-- MODAL 1: 5-QUESTION DIAGNOSIS BOTTOM SHEET -->
+  <div id="modalDiagnosis" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-end justify-center p-0">
+    <div class="bg-white dark:bg-slate-900 w-full max-w-[410px] rounded-t-3xl p-4 space-y-3 max-h-[85vh] overflow-y-auto sheet-transition border-t border-slate-200 dark:border-slate-800">
+      <div class="w-10 h-1 bg-slate-300 dark:bg-slate-700 rounded-full mx-auto mb-1"></div>
+      <div class="flex justify-between items-center border-b pb-2 border-slate-200 dark:border-slate-800">
+        <h3 class="font-extrabold text-xs text-slate-900 dark:text-white flex items-center gap-1">
+          <i class="fa-solid fa-compass text-brand-600"></i> 5문항 취업 가능성 간편진단
+        </h3>
+        <button onclick="closeModal('modalDiagnosis')" class="text-slate-400 text-base"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="space-y-2 text-xs">
+        <div>
+          <label class="font-bold block mb-1 text-[10px]">1. 현재 체류 자격</label>
+          <select class="w-full p-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-[11px]">
+            <option>D-2 (유학)</option>
+            <option>D-10 (구직)</option>
+            <option>E-9 (비전문취업)</option>
+          </select>
+        </div>
+        <div>
+          <label class="font-bold block mb-1 text-[10px]">2. 재학 / 졸업 상태</label>
+          <select class="w-full p-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-[11px]">
+            <option>졸업 예정 (6개월 이내)</option>
+            <option>재학 중</option>
+          </select>
+        </div>
+        <div>
+          <label class="font-bold block mb-1 text-[10px]">3. 희망 직무 분야</label>
+          <select class="w-full p-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-[11px]">
+            <option>제조업 정규직</option>
+            <option>식품 생산라인</option>
+          </select>
+        </div>
+      </div>
+
+      <button onclick="submitDiagnosis()" class="w-full py-2 bg-brand-600 text-white font-bold rounded-xl text-xs shadow-md active-press">
+        진단 결과 확인 및 체크리스트 갱신
+      </button>
+    </div>
+  </div>
+
+  <!-- MODAL 2: ARC OCR CAMERA SCANNER -->
+  <div id="modalOcr" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 w-full max-w-[340px] rounded-3xl p-4 space-y-3 text-center border border-slate-200 dark:border-slate-800">
+      <h3 class="font-bold text-xs text-slate-900 dark:text-white">외국인등록증 (ARC) AI OCR 스캔</h3>
+      <p class="text-[10px] text-slate-500">등록증 전면을 카메라에 맞추어 스캔하세요.</p>
+      <div id="ocrBox" class="w-full h-32 bg-slate-900 rounded-2xl border-2 border-dashed border-slate-600 flex flex-col items-center justify-center text-slate-400 relative">
+        <i class="fa-solid fa-camera text-xl mb-1"></i>
+        <span class="text-[9px]">터치하여 스캔 실행</span>
+        <input type="file" onchange="runOcrSimulation()" class="absolute inset-0 opacity-0 cursor-pointer">
+      </div>
+      <div class="flex gap-2">
+        <button onclick="closeModal('modalOcr')" class="flex-1 py-1.5 bg-slate-100 dark:bg-slate-800 text-xs font-bold rounded-xl">취소</button>
+        <button onclick="runOcrSimulation()" class="flex-1 py-1.5 bg-brand-600 text-white text-xs font-bold rounded-xl active-press">스캔</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 3: CERTIFICATE PDF / QR MODAL -->
+  <div id="modalCert" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white text-slate-900 w-full max-w-[340px] rounded-3xl p-4 space-y-3 border-2 border-amber-600 shadow-2xl">
+      <div class="text-center space-y-0.5">
+        <div class="text-amber-700 font-bold text-[9px] tracking-widest uppercase">Official Certificate</div>
+        <h3 class="text-sm font-black" id="certModalTitle">제조업 산업안전 보건교육</h3>
+        <p class="text-[9px] text-slate-500">Bridge Korea 검증 이수증</p>
+      </div>
+      <div class="space-y-1 text-[10px] border-y border-slate-200 py-2">
+        <div><strong>성명:</strong> 아민 (Nguyen Amin)</div>
+        <div><strong>발급번호:</strong> <span id="certModalId">BK-2026-SAF-9942</span></div>
+        <div><strong>발급일:</strong> 2026.07.15</div>
+      </div>
+      <div class="flex items-center justify-between">
+        <div class="text-[8px] text-slate-400">
+          암호화 서명 완료<br>SHA-256 Hash Verified
+        </div>
+        <div id="qrCanvas" class="p-1 bg-white border border-slate-200 rounded-lg"></div>
+      </div>
+      <div class="flex gap-2">
+        <button onclick="closeModal('modalCert')" class="flex-1 py-1.5 bg-slate-100 text-xs font-bold rounded-xl">닫기</button>
+        <button onclick="window.print()" class="flex-1 py-1.5 bg-brand-600 text-white text-xs font-bold rounded-xl active-press">인쇄 / PDF 저장</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 4: COMMUNITY CREATE POST MODAL -->
+  <div id="modalCreatePost" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-end justify-center p-0">
+    <div class="bg-white dark:bg-slate-900 w-full max-w-[410px] rounded-t-3xl p-4 space-y-3 max-h-[85vh] overflow-y-auto sheet-transition border-t border-slate-200 dark:border-slate-800">
+      <div class="w-10 h-1 bg-slate-300 dark:bg-slate-700 rounded-full mx-auto mb-1"></div>
+      <div class="flex justify-between items-center border-b pb-2 border-slate-200 dark:border-slate-800">
+        <h3 class="font-extrabold text-xs text-slate-900 dark:text-white flex items-center gap-1">
+          <i class="fa-solid fa-pen-to-square text-brand-600"></i> 라운지 글 작성
+        </h3>
+        <button onclick="closeModal('modalCreatePost')" class="text-slate-400 text-base"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="space-y-2 text-xs">
+        <div>
+          <label class="font-bold block mb-1 text-[10px] text-slate-500">카테고리 선택</label>
+          <select id="postInputTab" class="w-full p-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-[11px] font-bold">
+            <option value="비자·법률">비자·법률</option>
+            <option value="취업·이직">취업·이직</option>
+            <option value="K-회사생활">K-회사생활</option>
+          </select>
+        </div>
+        <div>
+          <label class="font-bold block mb-1 text-[10px] text-slate-500">세부 채널/태그</label>
+          <input type="text" id="postInputChannel" placeholder="예: E-7/D-10 비자, 채용 팁" class="w-full p-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-[11px]">
+        </div>
+        <div>
+          <label class="font-bold block mb-1 text-[10px] text-slate-500">제목</label>
+          <input type="text" id="postInputTitle" placeholder="제목을 입력하세요" class="w-full p-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-[11px] font-bold">
+        </div>
+        <div>
+          <label class="font-bold block mb-1 text-[10px] text-slate-500">내용</label>
+          <textarea id="postInputContent" rows="4" placeholder="한국 취업 경험담, 비자 관련 질문, 회사 생활 정보를 자유롭게 공유하세요." class="w-full p-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-[11px] resize-none"></textarea>
+        </div>
+      </div>
+
+      <button onclick="submitNewPost()" class="w-full py-2 bg-brand-600 text-white font-bold rounded-xl text-xs shadow-md active-press">
+        게시물 작성 완료
+      </button>
+    </div>
+  </div>
+
+  <!-- MODAL 5: POST DETAIL MODAL -->
+  <div id="modalPostDetail" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-end justify-center p-0">
+    <div class="bg-white dark:bg-slate-900 w-full max-w-[410px] rounded-t-3xl p-4 space-y-3 max-h-[85vh] overflow-y-auto sheet-transition border-t border-slate-200 dark:border-slate-800 flex flex-col">
+      <div class="w-10 h-1 bg-slate-300 dark:bg-slate-700 rounded-full mx-auto mb-1"></div>
+      
+      <div class="flex justify-between items-center border-b pb-2 border-slate-200 dark:border-slate-800 shrink-0">
+        <span class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-brand-100 text-brand-700 dark:bg-brand-950 dark:text-brand-300" id="detailPostChannel">비자·법률</span>
+        <button onclick="closeModal('modalPostDetail')" class="text-slate-400 text-base"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="space-y-2 text-xs flex-1 overflow-y-auto app-scrollbar">
+        <div class="flex justify-between items-center text-[9px] text-slate-400">
+          <span class="font-bold text-slate-800 dark:text-slate-200" id="detailPostAuthor">쿠팡 · 🇺🇸 미국</span>
+          <span id="detailPostViews">조회 840</span>
+        </div>
+        <h2 class="font-black text-xs text-slate-900 dark:text-white leading-snug" id="detailPostTitle">제목</h2>
+        <p class="text-[10px] text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-line" id="detailPostContent">내용</p>
+
+        <div class="flex items-center gap-3 pt-2 border-t border-slate-100 dark:border-slate-800">
+          <button onclick="likeCurrentPost()" class="px-2.5 py-1 rounded-full bg-rose-50 text-rose-600 dark:bg-rose-950/50 dark:text-rose-400 font-bold text-[10px] active-press flex items-center gap-1">
+            <i class="fa-solid fa-heart"></i> <span id="detailPostLikes">0</span>
+          </button>
+          <span class="text-[10px] text-slate-400"><i class="fa-regular fa-comment mr-1"></i>댓글 <span id="detailPostCommentCount">0</span></span>
+        </div>
+
+        <!-- Comments Container -->
+        <div class="space-y-1.5 pt-2" id="detailPostCommentsList">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+
+      <!-- Comment Input -->
+      <div class="p-1 border-t border-slate-200 dark:border-slate-800 flex items-center gap-1 shrink-0 pt-2">
+        <input type="text" id="commentInput" placeholder="댓글을 입력하세요..." class="flex-1 px-3 py-1.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-[10px] focus:outline-none" onkeydown="if(event.key==='Enter') submitComment()">
+        <button onclick="submitComment()" class="px-3 py-1.5 bg-brand-600 text-white text-[10px] font-bold rounded-xl active-press shrink-0">
+          등록
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 6: CHAT ROOM MODAL -->
+  <div id="modalChatRoom" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-end justify-center p-0">
+    <div class="bg-white dark:bg-slate-900 w-full max-w-[410px] rounded-t-3xl p-4 space-y-2 h-[80vh] flex flex-col sheet-transition border-t border-slate-200 dark:border-slate-800">
+      <div class="w-10 h-1 bg-slate-300 dark:bg-slate-700 rounded-full mx-auto mb-1"></div>
+      
+      <div class="flex justify-between items-center border-b pb-2 border-slate-200 dark:border-slate-800 shrink-0">
+        <div class="flex items-center gap-2">
+          <span id="chatRoomAvatar" class="text-base">👥</span>
+          <div>
+            <h3 class="font-bold text-xs text-slate-900 dark:text-white" id="chatRoomTitle">채팅방</h3>
+            <p class="text-[8px] text-slate-400" id="chatRoomSub">보안을 위해 개인정보 공유에 주의하세요</p>
+          </div>
+        </div>
+        <button onclick="closeModal('modalChatRoom')" class="text-slate-400 text-base"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <!-- Chat Messages Scroll -->
+      <div class="flex-1 overflow-y-auto space-y-2 p-1 app-scrollbar text-xs" id="chatRoomMessages">
+        <!-- Rendered by JS -->
+      </div>
+
+      <!-- Chat Input Bar -->
+      <div class="p-1 border-t border-slate-200 dark:border-slate-800 flex items-center gap-1 shrink-0 pt-2">
+        <input type="text" id="chatRoomInput" placeholder="메시지 보내기..." class="flex-1 px-3 py-1.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-[10px] focus:outline-none" onkeydown="if(event.key==='Enter') sendCommunityMessage()">
+        <button onclick="sendCommunityMessage()" class="w-7 h-7 bg-brand-600 text-white rounded-xl active-press flex items-center justify-center shrink-0 text-xs">
+          <i class="fa-solid fa-paper-plane"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST CONTAINER -->
+  <div id="toastBox" class="fixed bottom-14 inset-x-4 z-50 space-y-2 pointer-events-none flex flex-col items-center"></div>
+
+  <script>
+    let currentRole = 'WORKER';
+    let currentPostCategory = '전체';
+    let activePostId = null;
+    let activeChatId = null;
+
+    // Bridge Korea Checklist & Document Data
+    const checklistData = [
+      { id: 'chk1', title: '외국인등록증 정보 OCR 확인', done: true },
+      { id: 'chk2', title: '여권 유효기간 1년 이상 확인', done: true },
+      { id: 'chk3', title: 'TOPIK 성적표 등록 (Level 3+)', done: false, focal: true },
+      { id: 'chk4', title: '대학교 졸업예정 증명서', done: true },
+      { id: 'chk5', title: '산업안전 보건교육 이수증', done: true },
+    ];
+
+    const docData = [
+      { name: '여권 (Passport)', date: '2028.05.12', valid: true },
+      { name: '외국인등록증', date: '2027.02.28', valid: true },
+      { name: '산업안전 이수증', date: '2026.07.15', valid: true },
+      { name: 'TOPIK 성적표', date: '미등록', valid: false },
+    ];
+
+    // POT (K-Global Blind) Initial Data
+    let postsData = [
+      { 
+        id: 1, 
+        tab: '비자·법률', 
+        channel: 'E-7/D-10 비자', 
+        title: 'D-10 구직비자에서 E-7 전문인력 비자 전환 성공 후기 (서류 목록 포함)', 
+        content: '스타트업 취업 확정 후 비자 변경까지 3주 걸렸습니다. 출입국관리사무소 제출 시 유의할 점 공유합니다.\n\n1. 근로계약서 원본\n2. 회사 고용사유서\n3. 학위증명서 및 경력증명서(아포스티유 필수)\n\n서류 준비할 때 고용사유서가 제일 중요합니다! 회사의 인센티브 및 필요성을 명확히 적어야 합니다.', 
+        company: '쿠팡', 
+        national: '🇺🇸 미국',
+        views: 840, likes: 92, comments: 2,
+        commentsList: [
+          { id: 1, author: 'Nguyen Van A', company: '라인', national: '🇻🇳 베트남', text: '아포스티유 공증받는데 기간 얼마나 걸리셨나요?', time: '10분 전' },
+          { id: 2, author: 'Alex Rivera', company: '쿠팡', national: '🇺🇸 미국', text: '대사관 인증까지 포함해서 약 2주 정도 걸렸습니다!', time: '5분 전' }
+        ]
+      },
+      { 
+        id: 2, 
+        tab: '취업·이직', 
+        channel: '채용 팁', 
+        title: '개발자 직군, TOPIK 4급 없어도 한국 IT기업 취업 가능할까요?', 
+        content: '실무 기술 인터뷰는 영어로 진행되는 곳이 많지만, 사내 소통을 위해 3급 정도는 갖추는 것을 추천합니다. 한국어 코딩테스트를 보는 곳도 일부 있으니 미리 대비해보세요.', 
+        company: '라인', 
+        national: '🇮🇳 인도',
+        views: 620, likes: 45, comments: 1,
+        commentsList: [
+          { id: 1, author: 'Kenji', company: '당근', national: '🇯🇵 일본', text: '맞습니다. 코딩만 잘하면 생각보다 한국어 요구 수준이 높지 않아요.', time: '1시간 전' }
+        ]
+      },
+      { 
+        id: 3, 
+        tab: 'K-회사생활', 
+        channel: '기업 문화', 
+        title: '한국 회사의 회식 문화와 호칭(님/프로/책임) 적응 가이드', 
+        content: '처음 입사했을 때 ‘님’ 호칭과 1차, 2차 회식이 낯설었는데요, 외국인 입장에서 느낀 팁 몇 가지 적어봅니다. 직급 호칭에 너무 부담 안 가지셔도 됩니다!', 
+        company: '당근', 
+        national: '🇨🇦 캐나다',
+        views: 1120, likes: 130, comments: 0,
+        commentsList: []
+      }
+    ];
+
+    let chatsData = [
+      {
+        id: 1,
+        name: '🇰🇷 국내 외국인 개발자 네트워크',
+        avatar: '👥',
+        isGroup: true,
+        lastMessage: 'Alex님: 이번 주 토요일 강남역 모임 오시는 분 계신가요?',
+        time: '오후 2:15',
+        unread: 0
+      },
+      {
+        id: 2,
+        name: 'Nguyen Van A (라인)',
+        avatar: '🇻🇳',
+        isGroup: false,
+        lastMessage: '안녕하세요! 올려주신 E-7 비자 전환 후기 글 읽고 문의드립니다.',
+        time: '어제',
+        unread: 1,
+        verified: 'E-7-1 비자'
+      },
+      {
+        id: 3,
+        name: 'K-Work 채용 멘토',
+        avatar: '🤖',
+        isGroup: false,
+        lastMessage: '[알림] (주)당근 글로벌 개발자 채용 1차 서류에 합격하셨습니다.',
+        time: '3일 전',
+        unread: 0,
+        verified: '공식 매칭'
+      }
+    ];
+
+    let chatMessagesMap = {
+      1: [
+        { id: 1, sender: 'Kenji', text: '안녕하세요 여러분! 이번 주에 정모 있나요?', time: '오후 2:00', isMe: false },
+        { id: 2, sender: 'Alex Rivera', text: '이번 주 토요일 강남역 모임 오시는 분 계신가요?', time: '오후 2:15', isMe: true }
+      ],
+      2: [
+        { id: 1, sender: 'Nguyen Van A', text: '안녕하세요! 올려주신 E-7 비자 전환 후기 글 읽고 문의드립니다.', time: '어제', isMe: false },
+        { id: 2, sender: 'Nguyen Van A', text: '혹시 고용사유서 작성 양식 샘플을 조금 참고할 수 있을까요?', time: '어제', isMe: false }
+      ],
+      3: [
+        { id: 1, sender: 'K-Work 채용 멘토', text: '[알림] (주)당근 글로벌 개발자 채용 1차 서류에 합격하셨습니다.', time: '3일 전', isMe: false },
+        { id: 2, sender: 'K-Work 채용 멘토', text: '면접 일정 조율을 위해 메시지 확인 부탁드립니다.', time: '3일 전', isMe: false }
+      ]
+    };
+
+    const companyReviewsData = [
+      { id: 1, company: '쿠팡 (Coupang)', industry: 'IT / 이커머스', rating: 4.3, visaSupport: 4.8, globalCulture: 4.7, pros: '사내 언어로 영어가 혼용되며 비자 스폰서십 지원이 수월함.', cons: '업무 강도가 다소 센 편임.' },
+      { id: 2, company: '당근 (Karrot)', industry: 'IT / 서비스', rating: 4.5, visaSupport: 4.2, globalCulture: 4.6, pros: '통번역 체계 지원이 잘 되어 있고 자율성을 보장해 줌.', cons: '사내 세션 중 한국어가 많아 기초 소통 능력 필요.' }
+    ];
+
+    window.onload = function() {
+      startPhoneClock();
+      renderChecklist();
+      renderDocs();
+      renderPosts();
+      renderChatList();
+      renderCompanyReviews();
+    };
+
+    function startPhoneClock() {
+      setInterval(() => {
+        const now = new Date();
+        const hrs = String(now.getHours()).padStart(2, '0');
+        const mins = String(now.getMinutes()).padStart(2, '0');
+        document.getElementById('phoneClock').innerText = `${hrs}:${mins}`;
+      }, 1000);
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      const target = document.getElementById(`tab-${tabId}`);
+      if (target) target.classList.remove('hidden');
+
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.className = "nav-btn flex-1 flex flex-col items-center justify-center py-1 text-slate-400 dark:text-slate-500 active-press";
+      });
+
+      const activeBtn = document.getElementById(`nav-${tabId}`);
+      if (activeBtn) {
+        activeBtn.className = "nav-btn flex-1 flex flex-col items-center justify-center py-1 text-brand-600 dark:text-blue-400 font-bold active-press";
+      }
+    }
+
+    function switchRole() {
+      if (currentRole === 'WORKER') {
+        currentRole = 'EMPLOYER';
+        document.getElementById('roleBadgeText').innerText = "기업 회원 모드";
+        document.getElementById('roleButtonLabel').innerText = "기업회원";
+        switchTab('employer');
+        showToast("기업 회원 모드로 전환되었습니다.");
+      } else {
+        currentRole = 'WORKER';
+        document.getElementById('roleBadgeText').innerText = "외국인 회원 모드";
+        document.getElementById('roleButtonLabel').innerText = "외국인";
+        switchTab('visa');
+        showToast("외국인 회원 모드로 전환되었습니다.");
+      }
+    }
+
+    function renderChecklist() {
+      const container = document.getElementById('checklistContainer');
+      const completed = checklistData.filter(i => i.done).length;
+      const percent = Math.round((completed / checklistData.length) * 100);
+
+      document.getElementById('checklistProgressText').innerText = `${percent}%`;
+      document.getElementById('checklistProgressBar').style.width = `${percent}%`;
+
+      container.innerHTML = checklistData.map(item => `
+        <div onclick="toggleCheck('${item.id}')" class="p-1.5 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center justify-between cursor-pointer active-press bg-slate-50/50 dark:bg-slate-800/40">
+          <div class="flex items-center gap-1.5">
+            <i class="fa-solid ${item.done ? 'fa-circle-check text-emerald-500' : 'fa-circle text-slate-300'}"></i>
+            <span class="${item.done ? 'line-through text-slate-400' : 'text-slate-800 dark:text-slate-200'}">${item.title}</span>
+          </div>
+          ${item.focal ? '<span class="text-[8px] px-1 py-0.2 rounded bg-blue-100 text-blue-700 font-bold">최우선</span>' : ''}
+        </div>
+      `).join('');
+    }
+
+    function toggleCheck(id) {
+      const target = checklistData.find(i => i.id === id);
+      if (target) {
+        target.done = !target.done;
+        renderChecklist();
+      }
+    }
+
+    function renderDocs() {
+      const container = document.getElementById('documentGrid');
+      container.innerHTML = docData.map(d => `
+        <div class="p-2 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 text-[9px] space-y-0.5">
+          <div class="flex items-center justify-between font-bold">
+            <span class="truncate">${d.name}</span>
+            <span class="${d.valid ? 'text-emerald-500' : 'text-amber-500'}">${d.valid ? '등록' : '미등록'}</span>
+          </div>
+          <div class="text-slate-400 text-[8px]">${d.date}</div>
+        </div>
+      `).join('');
+    }
+
+    /* COMMUNITY SUB TAB LOGIC */
+    function switchCommunitySubTab(subTab) {
+      document.getElementById('comm-subview-posts').classList.add('hidden');
+      document.getElementById('comm-subview-messages').classList.add('hidden');
+      document.getElementById('comm-subview-reviews').classList.add('hidden');
+
+      document.getElementById('btn-sub-posts').className = "flex-1 py-1.5 rounded-xl text-slate-500 dark:text-slate-400 text-center transition-all";
+      document.getElementById('btn-sub-messages').className = "flex-1 py-1.5 rounded-xl text-slate-500 dark:text-slate-400 text-center transition-all";
+      document.getElementById('btn-sub-reviews').className = "flex-1 py-1.5 rounded-xl text-slate-500 dark:text-slate-400 text-center transition-all";
+
+      document.getElementById(`comm-subview-${subTab}`).classList.remove('hidden');
+      document.getElementById(`btn-sub-${subTab}`).className = "flex-1 py-1.5 rounded-xl bg-brand-600 text-white text-center transition-all";
+    }
+
+    function filterPosts(cat) {
+      currentPostCategory = cat;
+      document.querySelectorAll('.category-btn').forEach(btn => {
+        if (btn.dataset.cat === cat) {
+          btn.className = "category-btn px-2.5 py-1 rounded-full bg-brand-600 text-white shrink-0";
+        } else {
+          btn.className = "category-btn px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 shrink-0";
+        }
+      });
+      renderPosts();
+    }
+
+    function renderPosts() {
+      const container = document.getElementById('postFeedContainer');
+      const filtered = currentPostCategory === '전체' 
+        ? postsData 
+        : postsData.filter(p => p.tab === currentPostCategory);
+
+      if (filtered.length === 0) {
+        container.innerHTML = `<div class="text-center py-6 text-xs text-slate-400">등록된 게시물이 없습니다.</div>`;
+        return;
+      }
+
+      container.innerHTML = filtered.map(post => `
+        <div onclick="openPostDetail(${post.id})" class="p-3 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 space-y-1.5 shadow-sm active-press cursor-pointer">
+          <div class="flex justify-between items-center text-[9px]">
+            <span class="font-bold text-brand-600 dark:text-blue-400">${post.channel}</span>
+            <span class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 font-bold">${post.national}</span>
+          </div>
+          <h3 class="font-bold text-xs text-slate-900 dark:text-white line-clamp-1">${post.title}</h3>
+          <p class="text-[10px] text-slate-500 line-clamp-2 leading-relaxed">${post.content}</p>
+          <div class="flex items-center justify-between text-[9px] text-slate-400 pt-1 border-t border-slate-100 dark:border-slate-800/60">
+            <span class="font-bold text-slate-700 dark:text-slate-300">${post.company}</span>
+            <div class="flex items-center gap-2">
+              <span><i class="fa-regular fa-eye mr-0.5"></i>${post.views}</span>
+              <span class="text-rose-500"><i class="fa-regular fa-heart mr-0.5"></i>${post.likes}</span>
+              <span class="text-brand-500"><i class="fa-regular fa-comment mr-0.5"></i>${post.comments}</span>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function openPostDetail(id) {
+      activePostId = id;
+      const post = postsData.find(p => p.id === id);
+      if (!post) return;
+
+      post.views += 1;
+      renderPosts();
+
+      document.getElementById('detailPostChannel').innerText = `${post.tab} · ${post.channel}`;
+      document.getElementById('detailPostAuthor').innerText = `${post.company} · ${post.national}`;
+      document.getElementById('detailPostViews').innerText = `조회 ${post.views}`;
+      document.getElementById('detailPostTitle').innerText = post.title;
+      document.getElementById('detailPostContent').innerText = post.content;
+      document.getElementById('detailPostLikes').innerText = post.likes;
+      document.getElementById('detailPostCommentCount').innerText = post.commentsList.length;
+
+      renderCommentsList(post);
+      document.getElementById('modalPostDetail').classList.remove('hidden');
+    }
+
+    function renderCommentsList(post) {
+      const container = document.getElementById('detailPostCommentsList');
+      if (post.commentsList.length === 0) {
+        container.innerHTML = `<div class="text-center py-3 text-[9px] text-slate-400">첫 번째 댓글을 남겨보세요!</div>`;
+        return;
+      }
+
+      container.innerHTML = post.commentsList.map(c => `
+        <div class="p-2 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 space-y-0.5 text-[9px]">
+          <div class="flex justify-between text-slate-400">
+            <span class="font-bold text-slate-800 dark:text-slate-200">${c.author} (${c.company})</span>
+            <span>${c.time}</span>
+          </div>
+          <p class="text-slate-700 dark:text-slate-300">${c.text}</p>
+        </div>
+      `).join('');
+    }
+
+    function likeCurrentPost() {
+      if (!activePostId) return;
+      const post = postsData.find(p => p.id === activePostId);
+      if (post) {
+        post.likes += 1;
+        document.getElementById('detailPostLikes').innerText = post.likes;
+        renderPosts();
+        showToast("게시물에 좋아요를 표시했습니다.");
+      }
+    }
+
+    function submitComment() {
+      const input = document.getElementById('commentInput');
+      const text = input.value.trim();
+      if (!text || !activePostId) return;
+
+      const post = postsData.find(p => p.id === activePostId);
+      if (post) {
+        post.commentsList.push({
+          id: Date.now(),
+          author: 'Nguyen Amin',
+          company: '(주)한성정밀',
+          national: '🇻🇳 베트남',
+          text: text,
+          time: '방금 전'
+        });
+        post.comments += 1;
+        input.value = '';
+        renderCommentsList(post);
+        document.getElementById('detailPostCommentCount').innerText = post.commentsList.length;
+        renderPosts();
+        showToast("댓글이 등록되었습니다.");
+      }
+    }
+
+    function openCreatePostModal() {
+      document.getElementById('modalCreatePost').classList.remove('hidden');
+    }
+
+    function submitNewPost() {
+      const tab = document.getElementById('postInputTab').value;
+      const channel = document.getElementById('postInputChannel').value.trim() || '자유 게시판';
+      const title = document.getElementById('postInputTitle').value.trim();
+      const content = document.getElementById('postInputContent').value.trim();
+
+      if (!title || !content) {
+        showToast("제목과 내용을 모두 입력해주세요.");
+        return;
+      }
+
+      const newPostObj = {
+        id: Date.now(),
+        tab: tab,
+        channel: channel,
+        title: title,
+        content: content,
+        company: '(주)한성정밀',
+        national: '🇻🇳 베트남',
+        views: 1,
+        likes: 0,
+        comments: 0,
+        commentsList: []
+      };
+
+      postsData.unshift(newPostObj);
+      renderPosts();
+      closeModal('modalCreatePost');
+      document.getElementById('postInputTitle').value = '';
+      document.getElementById('postInputContent').value = '';
+      showToast("새 피드 게시글이 등록되었습니다!");
+    }
+
+    /* MESSAGES & CHAT ROOM LOGIC */
+    function renderChatList() {
+      const container = document.getElementById('chatListContainer');
+      container.innerHTML = chatsData.map(c => `
+        <div onclick="openChatRoom(${c.id})" class="p-2.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 flex items-center justify-between active-press cursor-pointer shadow-sm">
+          <div class="flex items-center gap-2.5">
+            <div class="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-sm">
+              ${c.avatar}
+            </div>
+            <div>
+              <div class="flex items-center gap-1">
+                <span class="font-bold text-xs text-slate-900 dark:text-white">${c.name}</span>
+                ${c.verified ? `<span class="text-[8px] bg-brand-100 dark:bg-brand-950 text-brand-600 font-bold px-1 rounded">${c.verified}</span>` : ''}
+              </div>
+              <p class="text-[9px] text-slate-400 line-clamp-1 mt-0.5">${c.lastMessage}</p>
+            </div>
+          </div>
+          <div class="text-right">
+            <div class="text-[8px] text-slate-400">${c.time}</div>
+            ${c.unread > 0 ? `<span class="bg-rose-500 text-white text-[8px] font-bold rounded-full w-3.5 h-3.5 flex items-center justify-center ml-auto mt-0.5">${c.unread}</span>` : ''}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function openChatRoom(id) {
+      activeChatId = id;
+      const chat = chatsData.find(c => c.id === id);
+      if (!chat) return;
+
+      chat.unread = 0;
+      renderChatList();
+
+      document.getElementById('chatRoomAvatar').innerText = chat.avatar;
+      document.getElementById('chatRoomTitle').innerText = chat.name;
+      renderChatMessages();
+      document.getElementById('modalChatRoom').classList.remove('hidden');
+    }
+
+    function renderChatMessages() {
+      const container = document.getElementById('chatRoomMessages');
+      const msgs = chatMessagesMap[activeChatId] || [];
+
+      container.innerHTML = msgs.map(m => `
+        <div class="flex flex-col ${m.isMe ? 'items-end' : 'items-start'} space-y-0.5">
+          ${!m.isMe ? `<span class="text-[8px] text-slate-400 font-bold">${m.sender}</span>` : ''}
+          <div class="flex items-end gap-1 ${m.isMe ? 'flex-row-reverse' : 'flex-row'}">
+            <div class="p-2 rounded-2xl text-[10px] leading-relaxed max-w-[78%] ${
+              m.isMe 
+                ? 'bg-brand-600 text-white rounded-tr-none' 
+                : 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-tl-none'
+            }">
+              ${m.text}
+            </div>
+            <span class="text-[7px] text-slate-400">${m.time}</span>
+          </div>
+        </div>
+      `).join('');
+
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function sendCommunityMessage() {
+      const input = document.getElementById('chatRoomInput');
+      const text = input.value.trim();
+      if (!text || !activeChatId) return;
+
+      if (!chatMessagesMap[activeChatId]) {
+        chatMessagesMap[activeChatId] = [];
+      }
+
+      chatMessagesMap[activeChatId].push({
+        id: Date.now(),
+        sender: 'Alex Rivera',
+        text: text,
+        time: '방금 전',
+        isMe: true
+      });
+
+      const chat = chatsData.find(c => c.id === activeChatId);
+      if (chat) {
+        chat.lastMessage = `나: ${text}`;
+        chat.time = '방금 전';
+      }
+
+      input.value = '';
+      renderChatMessages();
+      renderChatList();
+    }
+
+    function renderCompanyReviews() {
+      const container = document.getElementById('companyReviewsContainer');
+      container.innerHTML = companyReviewsData.map(r => `
+        <div class="p-3 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 space-y-2 shadow-sm">
+          <div class="flex justify-between items-start border-b border-slate-100 dark:border-slate-800 pb-1.5">
+            <div>
+              <h3 class="font-bold text-xs text-slate-900 dark:text-white">${r.company}</h3>
+              <span class="text-[8px] text-slate-400">${r.industry}</span>
+            </div>
+            <span class="text-xs font-black text-amber-500">★ ${r.rating}</span>
+          </div>
+          <div class="grid grid-cols-2 gap-1.5 bg-slate-50 dark:bg-slate-800/50 p-2 rounded-xl text-[9px]">
+            <div class="flex justify-between">
+              <span class="text-slate-400">비자 지원율:</span>
+              <span class="font-bold text-slate-700 dark:text-slate-200">★ ${r.visaSupport}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-slate-400">글로벌 문화:</span>
+              <span class="font-bold text-slate-700 dark:text-slate-200">★ ${r.globalCulture}</span>
+            </div>
+          </div>
+          <div class="text-[9px] space-y-0.5">
+            <p class="text-blue-600 dark:text-blue-400"><span class="font-bold">장점:</span> ${r.pros}</p>
+            <p class="text-rose-500"><span class="font-bold">단점:</span> ${r.cons}</p>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    /* MODAL & SYSTEM UTILS */
+    function openDiagnosisModal() {
+      document.getElementById('modalDiagnosis').classList.remove('hidden');
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.add('hidden');
+    }
+
+    function submitDiagnosis() {
+      closeModal('modalDiagnosis');
+      showToast("간편진단 결과에 따라 체크리스트가 갱신되었습니다.");
+    }
+
+    function openOcrModal() {
+      document.getElementById('modalOcr').classList.remove('hidden');
+    }
+
+    function runOcrSimulation() {
+      const box = document.getElementById('ocrBox');
+      box.innerHTML = `<i class="fa-solid fa-spinner fa-spin text-lg text-brand-500"></i><span class="text-[9px] mt-1">스캔 중...</span>`;
+      setTimeout(() => {
+        closeModal('modalOcr');
+        showToast("외국인등록증 스캔 완료 (만료일: 2027.02.28)");
+        box.innerHTML = `<i class="fa-solid fa-camera text-xl mb-1"></i><span class="text-[9px]">터치하여 스캔 실행</span>`;
+      }, 1000);
+    }
+
+    function showCert(title, certId) {
+      document.getElementById('certModalTitle').innerText = title;
+      document.getElementById('certModalId').innerText = certId;
+      document.getElementById('modalCert').classList.remove('hidden');
+
+      const qrBox = document.getElementById('qrCanvas');
+      qrBox.innerHTML = '';
+      new QRCode(qrBox, {
+        text: `https://bridgekorea.kr/verify?id=${certId}`,
+        width: 44,
+        height: 44,
+      });
+    }
+
+    function sendAiMessage() {
+      const input = document.getElementById('chatInput');
+      const text = input.value.trim();
+      if (!text) return;
+
+      const container = document.getElementById('chatBox');
+      container.innerHTML += `
+        <div class="flex justify-end">
+          <div class="bg-indigo-600 text-white p-2 rounded-2xl rounded-tr-none max-w-[85%] text-[10px] leading-relaxed">
+            ${text}
+          </div>
+        </div>
+      `;
+      input.value = '';
+      container.scrollTop = container.scrollHeight;
+
+      setTimeout(() => {
+        container.innerHTML += `
+          <div class="flex items-start gap-2">
+            <div class="w-5 h-5 rounded-full bg-indigo-600 text-white flex items-center justify-center text-[9px] shrink-0">
+              <i class="fa-solid fa-robot"></i>
+            </div>
+            <div class="bg-slate-100 dark:bg-slate-800 p-2 rounded-2xl rounded-tl-none max-w-[85%] text-slate-800 dark:text-slate-200 text-[10px] leading-relaxed">
+              D-2 유학생이 주말 시간제 취업을 하려면 학교 담당자의 시간제 취업 추천서와 하이코리아 사전 신고 승인이 필요합니다.
+            </div>
+          </div>
+        `;
+        container.scrollTop = container.scrollHeight;
+      }, 600);
+    }
+
+    function showToast(msg) {
+      const container = document.getElementById('toastBox');
+      const toast = document.createElement('div');
+      toast.className = "bg-slate-900 text-white dark:bg-white dark:text-slate-900 text-[10px] px-3 py-1.5 rounded-full shadow-2xl flex items-center gap-1 transition-all duration-300 pointer-events-auto border border-slate-700";
+      toast.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-400"></i><span>${msg}</span>`;
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 300);
+      }, 2000);
+    }
+
+    function toggleFullscreen() {
+      const dev = document.getElementById('phoneDevice');
+      dev.classList.toggle('fullscreen-mode');
+      const isFull = dev.classList.contains('fullscreen-mode');
+      document.getElementById('btnFullscreen').innerHTML = isFull 
+        ? `<i class="fa-solid fa-compress mr-1"></i>프레임` 
+        : `<i class="fa-solid fa-expand mr-1"></i>전체화면`;
+    }
+
+    function toggleTheme() {
+      document.documentElement.classList.toggle('dark');
+    }
+
+    function changeLanguage(lang) {
+      showToast(`언어 설정: ${lang.toUpperCase()}`);
+    }
+
+    function triggerFocalTask() {
+      showToast("TOPIK 성적표 업로드 화면으로 이동합니다.");
+    }
+
+    function openHiKorea() {
+      window.open('https://www.hikorea.go.kr', '_blank');
+    }
+
+    function applyJob(company) {
+      showToast(`${company}에 1-Click 바로 지원이 완료되었습니다!`);
+    }
+
+    function playVideo(title) {
+      showToast(`${title} 강의 플레이어가 실행됩니다.`);
+    }
+
+    function openExamModal() {
+      showToast("산업안전 평가 시험 모듈로 이동합니다.");
+    }
+
+    function openUploadModal() {
+      showToast("서류 추가 모달을 실행합니다.");
+    }
+
+    function openAiResumeModal() {
+      showToast("AI 이력서 / 자기소개서 생성기를 실행합니다.");
+    }
+  </script>
+</body>
+</html>
