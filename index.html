@@ -191,7 +191,7 @@
         </button>
 
         <!-- Language Selector -->
-        <select onchange="changeLanguage(this.value)" class="bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-[10px] font-bold rounded-full px-2 py-1 border border-slate-200 dark:border-slate-700 focus:outline-none cursor-pointer">
+        <select onchange="changeLanguage(this.value)" id="langSelect" class="bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-[10px] font-bold rounded-full px-2 py-1 border border-slate-200 dark:border-slate-700 focus:outline-none cursor-pointer">
           <option value="ko">🇰🇷 KO</option>
           <option value="en">🇺🇸 EN</option>
           <option value="vi">🇻🇳 VI</option>
@@ -320,7 +320,7 @@
           <div class="flex items-center justify-between">
             <h3 class="font-bold text-xs text-slate-900 dark:text-white flex items-center gap-1.5">
               <i class="fa-solid fa-folder-closed text-indigo-500"></i>
-              <span>서류 보관함 (4/9 등록)</span>
+              <span id="docCountHeader">서류 보관함 (3/4 등록)</span>
             </h3>
             <button onclick="openUploadModal()" class="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-[10px] font-bold text-brand-600 dark:text-blue-400 active-press">
               + 추가
@@ -453,7 +453,7 @@
                 <span class="px-1.5 py-0.5 rounded bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600">월 280만원</span>
                 <span class="px-1.5 py-0.5 rounded bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300">기숙사 무료</span>
               </div>
-              <button onclick="applyJob('(주)한성정밀공업')" class="w-full py-1.5 rounded-xl bg-brand-600 text-white text-[11px] font-bold active-press shadow-sm">
+              <button onclick="applyJob('(주)한성정밀공업', this)" class="w-full py-1.5 rounded-xl bg-brand-600 text-white text-[11px] font-bold active-press shadow-sm">
                 1-Click 바로 지원하기
               </button>
             </div>
@@ -622,27 +622,27 @@
     <nav id="bottomNavBar" class="absolute bottom-0 inset-x-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200/80 dark:border-slate-800 px-2 py-1 flex justify-around items-center z-40 shadow-app-tab">
       <button onclick="switchTab('visa')" id="nav-visa" class="nav-btn flex-1 flex flex-col items-center justify-center py-1 text-brand-600 dark:text-blue-400 font-bold active-press">
         <i class="fa-solid fa-passport text-base mb-0.5"></i>
-        <span class="text-[8px]">비자센터</span>
+        <span class="text-[8px]" id="navLabelVisa">비자센터</span>
       </button>
 
       <button onclick="switchTab('edu')" id="nav-edu" class="nav-btn flex-1 flex flex-col items-center justify-center py-1 text-slate-400 dark:text-slate-500 active-press">
         <i class="fa-solid fa-graduation-cap text-base mb-0.5"></i>
-        <span class="text-[8px]">교육&시험</span>
+        <span class="text-[8px]" id="navLabelEdu">교육&시험</span>
       </button>
 
       <button onclick="switchTab('jobs')" id="nav-jobs" class="nav-btn flex-1 flex flex-col items-center justify-center py-1 text-slate-400 dark:text-slate-500 active-press">
         <i class="fa-solid fa-briefcase text-base mb-0.5"></i>
-        <span class="text-[8px]">채용정보</span>
+        <span class="text-[8px]" id="navLabelJobs">채용정보</span>
       </button>
 
       <button onclick="switchTab('community')" id="nav-community" class="nav-btn flex-1 flex flex-col items-center justify-center py-1 text-slate-400 dark:text-slate-500 active-press">
         <i class="fa-solid fa-comments text-base mb-0.5"></i>
-        <span class="text-[8px]">커뮤니티</span>
+        <span class="text-[8px]" id="navLabelCommunity">커뮤니티</span>
       </button>
 
       <button onclick="switchTab('ai')" id="nav-ai" class="nav-btn flex-1 flex flex-col items-center justify-center py-1 text-slate-400 dark:text-slate-500 active-press">
         <i class="fa-solid fa-robot text-base mb-0.5"></i>
-        <span class="text-[8px]">AI튜터</span>
+        <span class="text-[8px]" id="navLabelAi">AI튜터</span>
       </button>
     </nav>
 
@@ -798,7 +798,7 @@
             <canvas id="examCertCanvas" width="280" height="230" class="rounded bg-white shadow-md"></canvas>
           </div>
           <button onclick="downloadCertPdf()" class="w-full py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-[10px] shadow-sm active-press flex items-center justify-center gap-1.5">
-            <i class="fa-solid fa-file-arrow-down"></i> PDF 이수증 저장하기
+            <i class="fa-solid fa-file-arrow-down"></i> PDF/이미지 이수증 저장하기
           </button>
         </div>
 
@@ -903,6 +903,152 @@
     </div>
   </div>
 
+  <!-- [NEW REALIZED MODAL 1] DOCUMENT UPLOAD MODAL -->
+  <div id="modalUploadDoc" class="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm hidden flex items-center justify-center p-3">
+    <div class="bg-white dark:bg-slate-900 w-full max-w-[360px] rounded-3xl p-4 space-y-3 border border-slate-200 dark:border-slate-800">
+      <div class="flex justify-between items-center border-b pb-2 border-slate-200 dark:border-slate-800">
+        <h3 class="font-extrabold text-xs text-slate-900 dark:text-white flex items-center gap-1.5">
+          <i class="fa-solid fa-folder-plus text-indigo-500"></i> 서류 보관함 등록
+        </h3>
+        <button onclick="closeModal('modalUploadDoc')" class="text-slate-400 hover:text-slate-600 text-base"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="space-y-2 text-xs">
+        <div>
+          <label class="font-bold block mb-1 text-[10px] text-slate-700 dark:text-slate-300">서류 구분</label>
+          <select id="uploadDocTypeSelect" class="w-full p-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-[10px] text-slate-900 dark:text-white">
+            <option value="TOPIK 성적표">TOPIK 한국어 성적표</option>
+            <option value="통장 잔액 증명서">통장 잔액 증명서 (D-10 대비)</option>
+            <option value="근무계약서">근로계약서 / 표준지침서</option>
+            <option value="대학 졸업(예정) 증명서">대학 졸업(예정) 증명서</option>
+            <option value="직접 입력">기타 직접 입력</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="font-bold block mb-1 text-[10px] text-slate-700 dark:text-slate-300">서류 명칭</label>
+          <input type="text" id="uploadDocNameInput" placeholder="예: TOPIK 3급 성적표" class="w-full p-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-[10px] text-slate-900 dark:text-white focus:outline-none focus:border-brand-600">
+        </div>
+
+        <div>
+          <label class="font-bold block mb-1 text-[10px] text-slate-700 dark:text-slate-300">상태 및 만료일 / 비고</label>
+          <input type="text" id="uploadDocDateInput" placeholder="예: 만료: 2027.12.31 또는 발급완료" class="w-full p-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-[10px] text-slate-900 dark:text-white focus:outline-none focus:border-brand-600">
+        </div>
+
+        <div class="border-2 border-dashed border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 p-3 rounded-2xl text-center space-y-1">
+          <i class="fa-solid fa-cloud-arrow-up text-brand-600 text-lg"></i>
+          <div class="text-[9px] font-bold text-slate-700 dark:text-slate-300">파일 첨부 (PDF 또는 JPG 이미지)</div>
+          <p class="text-[8px] text-slate-400">클릭하여 서류 스캔 파일 선택</p>
+          <input type="file" id="uploadDocFile" class="hidden" onchange="showToast('서류 스캔 파일이 선택되었습니다.')">
+          <button onclick="document.getElementById('uploadDocFile').click()" class="px-2.5 py-1 bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-[9px] rounded-lg">파일 찾기</button>
+        </div>
+      </div>
+
+      <button onclick="submitNewDocument()" class="w-full py-2.5 bg-brand-600 hover:bg-brand-500 text-white font-bold rounded-xl text-xs active-press shadow-md flex items-center justify-center gap-1">
+        <i class="fa-solid fa-check"></i>
+        <span>서류 보관함에 등록하기</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- [NEW REALIZED MODAL 2] AI RESUME / COVER LETTER GENERATOR MODAL -->
+  <div id="modalAiResume" class="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm hidden flex items-center justify-center p-3">
+    <div class="bg-white dark:bg-slate-900 w-full max-w-[390px] rounded-3xl p-4 space-y-3 border border-slate-200 dark:border-slate-800 max-h-[90vh] overflow-y-auto app-scrollbar">
+      <div class="flex justify-between items-center border-b pb-2 border-slate-200 dark:border-slate-800">
+        <h3 class="font-extrabold text-xs text-slate-900 dark:text-white flex items-center gap-1.5">
+          <i class="fa-solid fa-wand-magic-sparkles text-purple-600"></i> AI 맞춤 자기소개서 생성기
+        </h3>
+        <button onclick="closeModal('modalAiResume')" class="text-slate-400 hover:text-slate-600 text-base"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="space-y-2 text-xs">
+        <div>
+          <label class="font-bold block mb-1 text-[10px] text-slate-700 dark:text-slate-300">지원 희망 직무</label>
+          <select id="resumeJobTarget" class="w-full p-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-[10px] text-slate-900 dark:text-white">
+            <option value="제조업 정밀 부품 조립 및 품질 검사원">제조업 정밀 부품 조립 및 품질 검사원 (E-7)</option>
+            <option value="식품 생산 및 가공 공정 관리자">식품 생산 및 가공 공정 관리자</option>
+            <option value="기계 설비 수리 및 보수 보조">기계 설비 수리 및 보수 보조</option>
+          </select>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="font-bold block mb-1 text-[10px] text-slate-700 dark:text-slate-300">한국어 수준</label>
+            <select id="resumeKoreanLevel" class="w-full p-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-[10px] text-slate-900 dark:text-white">
+              <option value="TOPIK 3급 (업무 대화 가능)">TOPIK 3급</option>
+              <option value="TOPIK 4급 이상 (원활)">TOPIK 4급 이상</option>
+              <option value="TOPIK 2급 (기초 업무 가능)">TOPIK 2급</option>
+            </select>
+          </div>
+          <div>
+            <label class="font-bold block mb-1 text-[10px] text-slate-700 dark:text-slate-300">주요 강조 장점</label>
+            <select id="resumeStrength" class="w-full p-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-[10px] text-slate-900 dark:text-white">
+              <option value="안전 수칙 준수 & 성실성">안전 준수 & 성실성</option>
+              <option value="빠른 공정 적응력 & 팀워크">빠른 적응력 & 팀워크</option>
+              <option value="정밀 측정 기기 다루기">정밀 기기 다루기</option>
+            </select>
+          </div>
+        </div>
+
+        <button id="btnGenerateResume" onclick="generateAiResumeText()" class="w-full py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold rounded-xl text-[10px] shadow-sm active-press flex items-center justify-center gap-1.5">
+          <i class="fa-solid fa-sparkles"></i>
+          <span>AI 맞춤 자기소개서 초안 생성</span>
+        </button>
+
+        <div id="aiResumeResultArea" class="hidden bg-purple-50/60 dark:bg-slate-800 p-3 rounded-2xl border border-purple-200 dark:border-purple-900 space-y-2">
+          <div class="flex justify-between items-center">
+            <span class="text-[10px] font-bold text-purple-900 dark:text-purple-300">AI 생성 자기소개서</span>
+            <button onclick="copyGeneratedResume()" class="text-[9px] bg-white dark:bg-slate-700 px-2 py-0.5 rounded-lg border font-bold text-slate-700 dark:text-slate-200 active-press">
+              <i class="fa-regular fa-copy mr-1"></i>복사
+            </button>
+          </div>
+          <div id="aiResumeOutput" class="text-[9.5px] leading-relaxed text-slate-800 dark:text-slate-200 whitespace-pre-line font-medium max-h-[160px] overflow-y-auto app-scrollbar p-2 bg-white dark:bg-slate-900 rounded-xl border border-purple-100 dark:border-purple-950">
+          </div>
+          <button onclick="saveResumeToProfile()" class="w-full py-1.5 bg-emerald-600 text-white text-[10px] font-bold rounded-xl active-press shadow-sm flex items-center justify-center gap-1">
+            <i class="fa-solid fa-file-check"></i>
+            <span>내 프로필 지원 이력서로 저장</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- [NEW REALIZED MODAL 3] VIDEO PLAYER SIMULATOR MODAL -->
+  <div id="modalVideoPlayer" class="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-md hidden flex items-center justify-center p-3">
+    <div class="bg-black w-full max-w-[370px] rounded-3xl p-3 space-y-2.5 border border-slate-800 text-white">
+      <div class="flex justify-between items-center px-1">
+        <div class="flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
+          <span class="text-[10px] font-bold text-slate-300" id="videoModalCourseTitle">온라인 필수 교육</span>
+        </div>
+        <button onclick="closeModal('modalVideoPlayer')" class="text-slate-400 hover:text-white text-sm"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <!-- Video Display Area -->
+      <div class="w-full h-44 bg-slate-900 rounded-2xl border border-slate-800 flex flex-col items-center justify-center relative overflow-hidden group">
+        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+        <i class="fa-solid fa-play-circle text-4xl text-brand-500 mb-1 z-10 animate-bounce"></i>
+        <div class="z-10 text-[10px] font-bold text-slate-200" id="videoModalTitle">강의를 시청 중입니다...</div>
+        <div class="absolute bottom-2 left-3 right-3 flex justify-between text-[8px] text-slate-400 z-10">
+          <span id="videoCurrentTime">08:12</span>
+          <span>15:00</span>
+        </div>
+      </div>
+
+      <!-- Timeline Bar -->
+      <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden cursor-pointer" onclick="showToast('진도율 시점이 이동되었습니다.')">
+        <div class="bg-brand-500 h-full rounded-full" style="width: 55%"></div>
+      </div>
+
+      <div class="flex items-center justify-between pt-1 px-1">
+        <button onclick="showToast('이전 10초 뒤로 이동')" class="text-slate-400 hover:text-white text-xs"><i class="fa-solid fa-rotate-left"></i></button>
+        <button onclick="toggleVideoPlayState(this)" class="w-8 h-8 rounded-full bg-brand-600 text-white flex items-center justify-center text-xs active-press"><i class="fa-solid fa-pause"></i></button>
+        <button onclick="showToast('다음 10초 앞으로 이동')" class="text-slate-400 hover:text-white text-xs"><i class="fa-solid fa-rotate-right"></i></button>
+        <button onclick="completeVideoWatch()" class="px-2 py-1 bg-emerald-600 text-white rounded-lg text-[9px] font-bold active-press">시청 완료 처리</button>
+      </div>
+    </div>
+  </div>
+
   <!-- TOAST CONTAINER -->
   <div id="toastBox" class="fixed bottom-14 inset-x-4 z-50 space-y-2 pointer-events-none flex flex-col items-center"></div>
 
@@ -913,6 +1059,77 @@
     let postAiContext = 'WORK';
     let lastCorrectedText = '';
     let postAiCorrectedText = '';
+    let generatedResumeText = '';
+
+    // Language Dictionary Map
+    const i18nDict = {
+      ko: {
+        roleWorker: '외국인 회원 모드',
+        roleWorkerBtn: '외국인',
+        roleEmp: '기업 회원 모드',
+        roleEmpBtn: '기업회원',
+        navVisa: '비자센터',
+        navEdu: '교육&시험',
+        navJobs: '채용정보',
+        navCommunity: '커뮤니티',
+        navAi: 'AI튜터'
+      },
+      en: {
+        roleWorker: 'Foreign Member Mode',
+        roleWorkerBtn: 'Foreigner',
+        roleEmp: 'Employer Mode',
+        roleEmpBtn: 'Employer',
+        navVisa: 'Visa Center',
+        navEdu: 'Edu & Test',
+        navJobs: 'Job Board',
+        navCommunity: 'Community',
+        navAi: 'AI Tutor'
+      },
+      vi: {
+        roleWorker: 'Chế độ thành viên người nước ngoài',
+        roleWorkerBtn: 'Người nước ngoài',
+        roleEmp: 'Chế độ doanh nghiệp',
+        roleEmpBtn: 'Doanh nghiệp',
+        navVisa: 'Trung tâm Visa',
+        navEdu: 'Đào tạo & Thi',
+        navJobs: 'Tuyển dụng',
+        navCommunity: 'Cộng đồng',
+        navAi: 'Gia sư AI'
+      },
+      th: {
+        roleWorker: 'โหมดสมาชิก foreigners',
+        roleWorkerBtn: 'ชาวต่างชาติ',
+        roleEmp: 'โหมดนายจ้าง',
+        roleEmpBtn: 'นายจ้าง',
+        navVisa: 'ศูนย์วีซ่า',
+        navEdu: 'การศึกษา',
+        navJobs: 'หางาน',
+        navCommunity: 'ชุมชน',
+        navAi: 'AI ติวเตอร์'
+      },
+      id: {
+        roleWorker: 'Mode Anggota Asing',
+        roleWorkerBtn: 'WNA',
+        roleEmp: 'Mode Perusahaan',
+        roleEmpBtn: 'Perusahaan',
+        navVisa: 'Pusat Visa',
+        navEdu: 'Edukasi & Ujian',
+        navJobs: 'Lowongan',
+        navCommunity: 'Komunitas',
+        navAi: 'Tutor AI'
+      },
+      zh: {
+        roleWorker: '外国人会员模式',
+        roleWorkerBtn: '外国人',
+        roleEmp: '企业会员模式',
+        roleEmpBtn: '企业会员',
+        navVisa: '签证中心',
+        navEdu: '教育与考试',
+        navJobs: '招聘信息',
+        navCommunity: '社区',
+        navAi: 'AI 导师'
+      }
+    };
 
     // Initial Checklist Data
     const INITIAL_CHECKLIST_DATA = [
@@ -929,8 +1146,8 @@
 
     let checklistData = JSON.parse(JSON.stringify(INITIAL_CHECKLIST_DATA));
 
-    // Document Locker Data
-    const docData = [
+    // Dynamic Document Locker Data
+    let docData = [
       { name: '여권 (Passport)', valid: true, date: '만료: 2028.10.12' },
       { name: '외국인등록증 (ARC)', valid: true, date: '만료: 2027.02.28' },
       { name: 'TOPIK 성적표', valid: false, date: '미등록' },
@@ -1132,15 +1349,18 @@
     };
 
     window.switchRole = function() {
+      const curLang = document.getElementById('langSelect') ? document.getElementById('langSelect').value : 'ko';
+      const dict = i18nDict[curLang] || i18nDict['ko'];
+
       if (currentRole === 'WORKER') {
         currentRole = 'EMPLOYER';
-        document.getElementById('roleBadgeText').innerText = "기업 회원 모드";
-        document.getElementById('roleButtonLabel').innerText = "기업회원";
+        document.getElementById('roleBadgeText').innerText = dict.roleEmp;
+        document.getElementById('roleButtonLabel').innerText = dict.roleEmpBtn;
         showToast("기업 회원 모드로 전환되었습니다.");
       } else {
         currentRole = 'WORKER';
-        document.getElementById('roleBadgeText').innerText = "외국인 회원 모드";
-        document.getElementById('roleButtonLabel').innerText = "외국인";
+        document.getElementById('roleBadgeText').innerText = dict.roleWorker;
+        document.getElementById('roleButtonLabel').innerText = dict.roleWorkerBtn;
         window.switchTab('visa');
         showToast("외국인 회원 모드로 전환되었습니다.");
       }
@@ -1203,6 +1423,11 @@
     window.renderDocs = function() {
       const container = document.getElementById('documentGrid');
       if (!container) return;
+      
+      const validCount = docData.filter(d => d.valid).length;
+      const headerText = document.getElementById('docCountHeader');
+      if (headerText) headerText.innerText = `서류 보관함 (${validCount}/${docData.length} 등록)`;
+
       container.innerHTML = docData.map(d => `
         <div class="p-2 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 text-[9px] space-y-0.5">
           <div class="flex items-center justify-between font-bold">
@@ -1468,7 +1693,14 @@
     }
 
     window.downloadCertPdf = function() {
-      showToast("PDF 이수증이 성공적으로 다운로드되었습니다.");
+      const canvas = document.getElementById('examCertCanvas');
+      if (canvas) {
+        const link = document.createElement('a');
+        link.download = 'CommPass_Certificate.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+      }
+      showToast("PDF/이미지 이수증이 다운로드 폴더에 저장되었습니다.");
     };
 
     window.resetExamModule = function() {
@@ -1596,32 +1828,181 @@
       document.documentElement.classList.toggle('dark');
     };
 
+    // [REALIZED FEATURE 1] DYNAMIC I18N LANGUAGE CHANGING
     window.changeLanguage = function(lang) {
-      showToast(`언어 설정: ${lang.toUpperCase()}`);
+      const dict = i18nDict[lang] || i18nDict['ko'];
+      
+      const roleBadge = document.getElementById('roleBadgeText');
+      if (roleBadge) roleBadge.innerText = currentRole === 'WORKER' ? dict.roleWorker : dict.roleEmp;
+
+      const roleBtnLabel = document.getElementById('roleButtonLabel');
+      if (roleBtnLabel) roleBtnLabel.innerText = currentRole === 'WORKER' ? dict.roleWorkerBtn : dict.roleEmpBtn;
+
+      const navVisa = document.getElementById('navLabelVisa');
+      if (navVisa) navVisa.innerText = dict.navVisa;
+
+      const navEdu = document.getElementById('navLabelEdu');
+      if (navEdu) navEdu.innerText = dict.navEdu;
+
+      const navJobs = document.getElementById('navLabelJobs');
+      if (navJobs) navJobs.innerText = dict.navJobs;
+
+      const navComm = document.getElementById('navLabelCommunity');
+      if (navComm) navComm.innerText = dict.navCommunity;
+
+      const navAi = document.getElementById('navLabelAi');
+      if (navAi) navAi.innerText = dict.navAi;
+
+      showToast(`언어 전환 완료: ${lang.toUpperCase()}`);
     };
 
+    // [REALIZED FEATURE 2] FOCAL TASK CONNECTOR
     window.triggerFocalTask = function() {
-      showToast("TOPIK 성적표 업로드 화면으로 이동합니다.");
+      const topicTask = checklistData.find(i => i.id === '5');
+      if (topicTask && !topicTask.done) {
+        window.openUploadModal();
+        const typeSelect = document.getElementById('uploadDocTypeSelect');
+        if (typeSelect) typeSelect.value = 'TOPIK 성적표';
+        const nameInput = document.getElementById('uploadDocNameInput');
+        if (nameInput) nameInput.value = 'TOPIK 3급 성적표';
+        const dateInput = document.getElementById('uploadDocDateInput');
+        if (dateInput) dateInput.value = '취득일: 2026.05.20 (유효기간 2년)';
+      } else {
+        showToast("TOPIK 성적 정보가 이미 정상 등록되어 있습니다.");
+      }
     };
 
     window.openHiKorea = function() {
       window.open('https://www.hikorea.go.kr', '_blank');
     };
 
-    window.applyJob = function(company) {
-      showToast(`${company}에 1-Click 바로 지원이 완료되었습니다!`);
+    // [REALIZED FEATURE 3] INTERACTIVE JOB APPLY
+    window.applyJob = function(company, btnEl) {
+      if (btnEl) {
+        btnEl.innerText = "✓ 지원 완료 (승인 대기중)";
+        btnEl.className = "w-full py-1.5 rounded-xl bg-emerald-600 text-white text-[11px] font-bold shadow-sm cursor-default";
+        btnEl.onclick = null;
+      }
+      showToast(`${company}에 1-Click 지원이 완료되었습니다!`);
     };
 
+    // [REALIZED FEATURE 4] INTERACTIVE VIDEO PLAYER
     window.playVideo = function(title) {
-      showToast(`${title} 강의 플레이어가 실행됩니다.`);
+      const modal = document.getElementById('modalVideoPlayer');
+      const vTitle = document.getElementById('videoModalTitle');
+      const cTitle = document.getElementById('videoModalCourseTitle');
+      
+      if (vTitle) vTitle.innerText = `[시청 중] ${title}`;
+      if (cTitle) cTitle.innerText = title;
+      if (modal) modal.classList.remove('hidden');
     };
 
+    window.toggleVideoPlayState = function(btn) {
+      if (btn.innerHTML.includes('fa-pause')) {
+        btn.innerHTML = `<i class="fa-solid fa-play"></i>`;
+        showToast("동영상이 일시정지 되었습니다.");
+      } else {
+        btn.innerHTML = `<i class="fa-solid fa-pause"></i>`;
+        showToast("동영상을 재생합니다.");
+      }
+    };
+
+    window.completeVideoWatch = function() {
+      window.closeModal('modalVideoPlayer');
+      showToast("온라인 필수 교육 시청이 완료되었습니다!");
+    };
+
+    // [REALIZED FEATURE 5] DOCUMENT UPLOAD MODAL & STATE UPDATE
     window.openUploadModal = function() {
-      showToast("서류 추가 모달을 실행합니다.");
+      const modal = document.getElementById('modalUploadDoc');
+      if (modal) modal.classList.remove('hidden');
     };
 
+    window.submitNewDocument = function() {
+      const nameInput = document.getElementById('uploadDocNameInput');
+      const dateInput = document.getElementById('uploadDocDateInput');
+      const typeSelect = document.getElementById('uploadDocTypeSelect');
+
+      const name = nameInput && nameInput.value.trim() ? nameInput.value.trim() : (typeSelect ? typeSelect.value : ' 신규 서류');
+      const date = dateInput && dateInput.value.trim() ? dateInput.value.trim() : '등록 완료';
+
+      docData.push({
+        name: name,
+        valid: true,
+        date: date
+      });
+
+      // Update TOPIK task in checklist if applicable
+      if (name.includes('TOPIK')) {
+        const topikCheck = checklistData.find(i => i.id === '5');
+        if (topikCheck) {
+          topikCheck.done = true;
+          window.renderChecklist();
+        }
+      }
+
+      window.renderDocs();
+      window.closeModal('modalUploadDoc');
+      showToast(`'${name}' 서류가 보관함에 성공적으로 등록되었습니다.`);
+
+      if (nameInput) nameInput.value = '';
+      if (dateInput) dateInput.value = '';
+    };
+
+    // [REALIZED FEATURE 6] AI RESUME GENERATOR
     window.openAiResumeModal = function() {
-      showToast("AI 이력서 / 자기소개서 생성기를 실행합니다.");
+      const modal = document.getElementById('modalAiResume');
+      if (modal) modal.classList.remove('hidden');
+    };
+
+    window.generateAiResumeText = function() {
+      const jobTarget = document.getElementById('resumeJobTarget').value;
+      const korLevel = document.getElementById('resumeKoreanLevel').value;
+      const strength = document.getElementById('resumeStrength').value;
+      const btn = document.getElementById('btnGenerateResume');
+
+      if (btn) btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i><span>AI 이력서 작성 중...</span>`;
+
+      setTimeout(() => {
+        if (btn) btn.innerHTML = `<i class="fa-solid fa-sparkles"></i><span>AI 맞춤 자기소개서 초안 생성</span>`;
+
+        generatedResumeText = `[지원 분야: ${jobTarget}]\n` +
+          `안녕하십니까. 한국의 우수한 기술력을 배우고 정밀한 공정 관리에 이바지하고자 지원한 지원자 아민입니다.\n\n` +
+          `1. 한국어 능력 및 적응력:\n` +
+          `현재 ${korLevel} 자격을 보유하고 있어 작업장의 산업안전 지시어 및 공정 지시서를 정확히 이해할 수 있으며, 동료 및 반장님과의 완활한 소통이 가능합니다.\n\n` +
+          `2. 직무 강점 및 태도:\n` +
+          `저의 가장 큰 장점은 '${strength}'입니다. CommPass 필수 산업안전 교육을 100% 이수하여 보호구 착용 및 안전 수칙을 철저히 준수합니다. 규정된 품질 기준을 엄격히 준수하여 불량률 최소화에 기여하겠습니다.`;
+
+        const outBox = document.getElementById('aiResumeOutput');
+        if (outBox) outBox.innerText = generatedResumeText;
+
+        const resArea = document.getElementById('aiResumeResultArea');
+        if (resArea) resArea.classList.remove('hidden');
+
+        showToast("AI 자기소개서 초안 작성이 완료되었습니다.");
+      }, 800);
+    };
+
+    window.copyGeneratedResume = function() {
+      if (!generatedResumeText) return;
+      const tempInput = document.createElement("textarea");
+      tempInput.value = generatedResumeText;
+      document.body.appendChild(tempInput);
+      tempInput.select();
+      document.execCommand("copy");
+      document.body.removeChild(tempInput);
+      showToast("자기소개서 내용이 클립보드에 복사되었습니다.");
+    };
+
+    window.saveResumeToProfile = function() {
+      // Mark Checklist item #7 as complete
+      const resumeTask = checklistData.find(i => i.id === '7');
+      if (resumeTask) {
+        resumeTask.done = true;
+        window.renderChecklist();
+      }
+      window.closeModal('modalAiResume');
+      showToast("AI 이력서가 프로필에 저장되었으며 체크리스트가 완료 처리되었습니다.");
     };
 
     // On Load Initializations
