@@ -995,6 +995,57 @@
     </div>
   </div>
 
+  <!-- MODAL 4: NEW - TOPIK/LANGUAGE SCORE REGISTRATION MODAL -->
+  <div id="modalTopik" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-end justify-center p-0">
+    <div class="bg-white dark:bg-slate-900 w-full max-w-[410px] rounded-t-3xl p-4 space-y-3 max-h-[85vh] overflow-y-auto sheet-transition border-t border-slate-200 dark:border-slate-800">
+      <div class="w-10 h-1 bg-slate-300 dark:bg-slate-700 rounded-full mx-auto mb-1"></div>
+      <div class="flex justify-between items-center border-b pb-2 border-slate-200 dark:border-slate-800">
+        <h3 class="font-extrabold text-xs text-slate-900 dark:text-white flex items-center gap-1">
+          <i class="fa-solid fa-language text-brand-600"></i> 한국어 성적 등록 (TOPIK / KIIP)
+        </h3>
+        <button onclick="closeModal('modalTopik')" class="text-slate-400 text-base"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="font-bold block mb-1 text-[10px] text-slate-700 dark:text-slate-300">1. 시험 종류</label>
+          <select id="topikType" class="w-full p-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-[11px] text-slate-900 dark:text-white focus:outline-none focus:border-brand-600">
+            <option value="TOPIK">TOPIK (한국어능력시험)</option>
+            <option value="KIIP">KIIP (사회통합프로그램)</option>
+            <option value="EPS-TOPIK">EPS-TOPIK (고용허가제)</option>
+          </select>
+        </div>
+        <div>
+          <label class="font-bold block mb-1 text-[10px] text-slate-700 dark:text-slate-300">2. 취득 등급 (급수)</label>
+          <select id="topikLevel" class="w-full p-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-[11px] text-slate-900 dark:text-white focus:outline-none focus:border-brand-600">
+            <option value="1급">1급</option>
+            <option value="2급">2급</option>
+            <option value="3급" selected>3급</option>
+            <option value="4급">4급</option>
+            <option value="5급">5급</option>
+            <option value="6급">6급</option>
+          </select>
+        </div>
+        <div>
+          <label class="font-bold block mb-1 text-[10px] text-slate-700 dark:text-slate-300">3. 취득 일자</label>
+          <input type="date" id="topikDate" class="w-full p-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-[11px] text-slate-900 dark:text-white focus:outline-none focus:border-brand-600">
+        </div>
+        <div>
+          <label class="font-bold block mb-1 text-[10px] text-slate-700 dark:text-slate-300">4. 성적표 증빙 자료 첨부</label>
+          <div class="w-full h-20 bg-slate-50 dark:bg-slate-800 rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-600 flex flex-col items-center justify-center text-slate-400 relative cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700 transition">
+            <i class="fa-solid fa-cloud-arrow-up text-lg mb-1"></i>
+            <span class="text-[9px]">터치하여 갤러리 또는 카메라 실행</span>
+            <input type="file" accept="image/*,.pdf" class="absolute inset-0 opacity-0 cursor-pointer">
+          </div>
+        </div>
+      </div>
+
+      <button onclick="submitTopikScore()" class="w-full py-2.5 bg-brand-600 hover:bg-brand-500 text-white font-bold rounded-xl text-xs shadow-md active-press mt-2">
+        성적 등록 완료하기
+      </button>
+    </div>
+  </div>
+
   <!-- TOAST CONTAINER -->
   <div id="toastBox" class="fixed bottom-14 inset-x-4 z-50 space-y-2 pointer-events-none flex flex-col items-center"></div>
 
@@ -1218,11 +1269,11 @@
             <h3 class="font-bold text-xs text-slate-900 dark:text-white leading-tight">${course.title}</h3>
             <p class="text-[9.5px] text-slate-500 dark:text-slate-400 leading-snug">${course.description}</p>
             <div class="flex gap-2 pt-1">
-              <button onclick="playVideo('${safeTitle}')" class="flex-1 py-1.5 rounded-xl bg-slate-200 dark:bg-slate-700 text-[10px] font-bold active-press text-center text-slate-800 dark:text-slate-100">
-                <i class="fa-solid fa-play mr-1"></i> 강의 시청
+              <button onclick="playVideo('${safeTitle}')" class="flex-1 py-1.5 rounded-xl bg-slate-200 dark:bg-slate-700 text-[10px] font-bold active-press text-center text-slate-800 dark:text-slate-200">
+                <i class="fa-solid fa-play mr-1"></i>강의 보기
               </button>
-              <button onclick="openInteractiveExamModal()" class="flex-1 py-1.5 rounded-xl bg-brand-600 text-white text-[10px] font-bold active-press text-center shadow-sm">
-                <i class="fa-solid fa-clipboard-check mr-1"></i> 학습 & 시험 응시
+              <button onclick="openInteractiveExamModal()" class="flex-1 py-1.5 rounded-xl bg-emerald-600 text-white text-[10px] font-bold active-press shadow-sm text-center">
+                <i class="fa-solid fa-clipboard-check mr-1"></i>평가 응시
               </button>
             </div>
           </div>
@@ -1230,519 +1281,31 @@
       }).join('');
     };
 
-    window.switchAiSubMode = function(mode) {
-      const tutorView = document.getElementById('aiSubModeTutor');
-      const chatView = document.getElementById('aiSubModeChat');
-      const btnTutor = document.getElementById('btnAiModeTutor');
-      const btnChat = document.getElementById('btnAiModeChat');
-
-      if (!tutorView || !chatView) return;
-
-      if (mode === 'tutor') {
-        tutorView.classList.remove('hidden');
-        chatView.classList.add('hidden');
-        if (btnTutor) btnTutor.className = "px-2 py-1 rounded-lg bg-white text-indigo-900 transition-all";
-        if (btnChat) btnChat.className = "px-2 py-1 rounded-lg text-white hover:text-indigo-200 transition-all";
-      } else {
-        tutorView.classList.add('hidden');
-        chatView.classList.remove('hidden');
-        if (btnChat) btnChat.className = "px-2 py-1 rounded-lg bg-white text-indigo-900 transition-all";
-        if (btnTutor) btnTutor.className = "px-2 py-1 rounded-lg text-white hover:text-indigo-200 transition-all";
-      }
-    };
-
-    window.setAiContext = function(ctx) {
-      activeAiContext = ctx;
-      const ctxs = ['WORK', 'SAFETY', 'CULTURE'];
-      ctxs.forEach(c => {
-        const btn = document.getElementById(`ctxBtn${c}`);
-        if (btn) {
-          if (c === ctx) {
-            btn.className = "p-2 rounded-2xl border text-left bg-brand-900 text-white border-brand-900 shadow-sm transition";
-          } else {
-            btn.className = "p-2 rounded-2xl border text-left bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 transition";
-          }
-        }
-      });
-
-      const labelMap = {
-        WORK: '현장·직무 모드',
-        SAFETY: '안전·수칙 모드',
-        CULTURE: '직장·격식 모드'
-      };
-      const labelEl = document.getElementById('ctxLabelText');
-      if (labelEl) labelEl.innerText = labelMap[ctx];
-    };
-
-    window.fillAiSample = function(text, ctx) {
-      const inputEl = document.getElementById('aiTutorInput');
-      if (inputEl) inputEl.value = text;
-      window.setAiContext(ctx);
-    };
-
-    window.runAiTutorCorrection = function() {
-      const inputEl = document.getElementById('aiTutorInput');
-      if (!inputEl) return;
-      const input = inputEl.value.trim();
-      if (!input) {
-        showToast("원문 문장을 입력해 주세요.");
-        return;
-      }
-
-      const btn = document.getElementById('btnRunAiTutor');
-      if (btn) btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i><span>AI 분석 중...</span>`;
-
-      setTimeout(() => {
-        if (btn) btn.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles"></i><span>AI 교정 및 현장 표준어 분석</span>`;
-
-        let editedText = "";
-        let terms = [];
-        let advice = [];
-
-        if (activeAiContext === 'WORK') {
-          editedText = "반장님, 어제 전동드라이버 수리 문제로 해당 공정 작업을 진행하지 못했습니다.";
-          terms = [
-            { orig: "드라이버", up: "전동드라이버 (공구 명칭 표준화)" },
-            { orig: "일 못했어요", up: "공정 작업을 진행하지 못했습니다 (보고 격식화)" }
-          ];
-          advice = [
-            "현장에서는 단순 '드라이버'보다 '전동드라이버'처럼 표준 공구명을 사용합니다.",
-            "작업 지연 시 사유와 함께 '공정을 진행하지 못했다'고 명확히 전달하는 것이 권장됩니다."
-          ];
-        } else if (activeAiContext === 'SAFETY') {
-          editedText = "안전관리자님, 바닥 누수로 인한 미끄럼 위험 요소가 있어 즉시 조치 요청드립니다.";
-          terms = [
-            { orig: "물이 있어서", up: "누수로 인한 미끄럼 위험 요소 (산업안전 용어)" },
-            { orig: "치워주세요", up: "조치 요청드립니다 (안전 보고 표준화)" }
-          ];
-          advice = [
-            "산업안전 보고 시 '누수', '미끄럼 위험' 등 위험의 유형을 구체적으로 적어야 합니다.",
-            "작업장 위험 요소 발견 시 '조치 요청'으로 명확히 표기해야 즉시 처리됩니다."
-          ];
-        } else {
-          editedText = "반장님, 전달받은 도면 지시서의 치수 표기 부분 확인을 부탁드립니다.";
-          terms = [
-            { orig: "무슨 말인지 잘 모름", up: "도면 지시서 치수 표기 확인 부탁 (직장 격식)" }
-          ];
-          advice = [
-            "상급자에게 질문할 때는 '모른다' 대신 확인이 필요한 핵심 포인트(치수, 순서)를 명시해 질문합니다."
-          ];
-        }
-
-        lastCorrectedText = editedText;
-        const outputEl = document.getElementById('aiTutorOutputText');
-        if (outputEl) outputEl.innerText = `"${editedText}"`;
-
-        const termsContainer = document.getElementById('aiTutorTerms');
-        if (termsContainer) {
-          termsContainer.innerHTML = terms.map(t => `
-            <div class="p-1.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-between text-[9px]">
-              <span class="line-through text-rose-500">${t.orig}</span>
-              <i class="fa-solid fa-arrow-right text-slate-400 text-[8px]"></i>
-              <span class="font-bold text-brand-600 dark:text-blue-400">${t.up}</span>
-            </div>
-          `).join('');
-        }
-
-        const adviceContainer = document.getElementById('aiTutorAdvice');
-        if (adviceContainer) {
-          adviceContainer.innerHTML = advice.map(a => `<li>${a}</li>`).join('');
-        }
-
-        const resBox = document.getElementById('aiTutorResultBox');
-        if (resBox) resBox.classList.remove('hidden');
-        showToast("AI 현장·직무 문장 교정이 완료되었습니다.");
-      }, 800);
-    };
-
-    window.copyCorrectedText = function() {
-      if (!lastCorrectedText) return;
-      
-      const tempInput = document.createElement("textarea");
-      tempInput.value = lastCorrectedText;
-      document.body.appendChild(tempInput);
-      tempInput.select();
-      document.execCommand("copy");
-      document.body.removeChild(tempInput);
-
-      showToast("교정된 문장이 클립보드에 복사되었습니다.");
-    };
-
+    /* Basic functions */
     window.switchTab = function(tabId) {
       document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-      const target = document.getElementById(`tab-${tabId}`);
-      if (target) target.classList.remove('hidden');
-
-      document.querySelectorAll('.nav-btn').forEach(btn => {
-        btn.className = "nav-btn flex-1 flex flex-col items-center justify-center py-1 text-slate-400 dark:text-slate-500 active-press";
+      document.querySelectorAll('.nav-btn').forEach(el => {
+        el.classList.remove('text-brand-600', 'dark:text-blue-400', 'font-bold');
+        el.classList.add('text-slate-400', 'dark:text-slate-500');
       });
 
-      const activeBtn = document.getElementById(`nav-${tabId}`);
+      const activeContent = document.getElementById('tab-' + tabId);
+      if (activeContent) activeContent.classList.remove('hidden');
+
+      const activeBtn = document.getElementById('nav-' + tabId);
       if (activeBtn) {
-        activeBtn.className = "nav-btn flex-1 flex flex-col items-center justify-center py-1 text-brand-600 dark:text-blue-400 font-bold active-press";
+        activeBtn.classList.remove('text-slate-400', 'dark:text-slate-500');
+        activeBtn.classList.add('text-brand-600', 'dark:text-blue-400', 'font-bold');
+      }
+
+      if (tabId === 'edu') {
+        filterEduCourses();
       }
     };
 
-    window.switchRole = function() {
-      if (currentRole === 'WORKER') {
-        currentRole = 'EMPLOYER';
-        const badge = document.getElementById('roleBadgeText');
-        if (badge) badge.innerText = "기업 회원 모드";
-        const btnLabel = document.getElementById('roleButtonLabel');
-        if (btnLabel) btnLabel.innerText = "기업회원";
-        showToast("기업 회원 모드로 전환되었습니다.");
-      } else {
-        currentRole = 'WORKER';
-        const badge = document.getElementById('roleBadgeText');
-        if (badge) badge.innerText = "외국인 회원 모드";
-        const btnLabel = document.getElementById('roleButtonLabel');
-        if (btnLabel) btnLabel.innerText = "외국인";
-        window.switchTab('visa');
-        showToast("외국인 회원 모드로 전환되었습니다.");
-      }
-    };
-
-    window.renderChecklist = function() {
-      const container = document.getElementById('checklistContainer');
-      if (!container) return;
-      const completed = checklistData.filter(i => i.done).length;
-      const percent = Math.round((completed / checklistData.length) * 100);
-
-      const progressText = document.getElementById('checklistProgressText');
-      if (progressText) progressText.innerText = `${percent}%`;
-
-      const progressBar = document.getElementById('checklistProgressBar');
-      if (progressBar) progressBar.style.width = `${percent}%`;
-
-      const nextTask = checklistData.find(i => !i.done);
-      const focalBox = document.getElementById('focalTaskBox');
-      if (focalBox) {
-        if (nextTask) {
-          const focalTitle = document.getElementById('focalTaskTitle');
-          if (focalTitle) focalTitle.innerText = nextTask.title;
-          focalBox.classList.remove('hidden');
-        } else {
-          focalBox.classList.add('hidden');
-        }
-      }
-
-      container.innerHTML = checklistData.map(item => `
-        <div onclick="toggleCheck('${item.id}')" class="p-1.5 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center justify-between cursor-pointer active-press ${item.done ? 'bg-slate-100/60 dark:bg-slate-800/20' : 'bg-slate-50/50 dark:bg-slate-800/40'}">
-          <div class="flex items-center gap-1.5 min-w-0 flex-1">
-            <i class="fa-solid ${item.done ? 'fa-circle-check text-emerald-500' : 'fa-circle text-slate-300'} text-xs shrink-0"></i>
-            <span class="text-[10px] truncate ${item.done ? 'line-through text-slate-400' : 'text-slate-800 dark:text-slate-200 font-medium'}">${item.title}</span>
-          </div>
-          <span class="text-[7.5px] px-1.5 py-0.2 rounded font-bold shrink-0 ml-1 ${
-            item.category === 'VISA' ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300' :
-            item.category === 'SKILL' ? 'bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300' :
-            item.category === 'JOB' ? 'bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300' :
-            'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
-          }">${item.category}</span>
-        </div>
-      `).join('');
-    };
-
-    window.toggleCheck = function(id) {
-      const target = checklistData.find(i => i.id === id);
-      if (target) {
-        target.done = !target.done;
-        window.renderChecklist();
-      }
-    };
-
-    window.resetChecklist = function() {
-      checklistData = JSON.parse(JSON.stringify(INITIAL_CHECKLIST_DATA));
-      window.renderChecklist();
-      showToast("체크리스트가 초기 상태로 복원되었습니다.");
-    };
-
-    window.renderDocs = function() {
-      const container = document.getElementById('documentGrid');
-      if (!container) return;
-      container.innerHTML = docData.map(d => `
-        <div class="p-2 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 text-[9px] space-y-0.5">
-          <div class="flex items-center justify-between font-bold">
-            <span class="truncate">${d.name}</span>
-            <span class="${d.valid ? 'text-emerald-500' : 'text-amber-500'}">${d.valid ? '등록' : '미등록'}</span>
-          </div>
-          <div class="text-slate-400 text-[8px]">${d.date}</div>
-        </div>
-      `).join('');
-    };
-
-    window.openCreatePostModal = function() {
-      const input = document.getElementById('postContentInput');
-      if (input) input.value = '';
-      const preview = document.getElementById('postAiResultPreview');
-      if (preview) preview.classList.add('hidden');
-      const modal = document.getElementById('modalCreatePost');
-      if (modal) modal.classList.remove('hidden');
-    };
-
-    window.setPostAiContext = function(ctx) {
-      postAiContext = ctx;
-      const ctxs = ['WORK', 'SAFETY', 'CULTURE'];
-      ctxs.forEach(c => {
-        const btn = document.getElementById(`postCtx${c}`);
-        if (btn) {
-          if (c === ctx) {
-            btn.className = "px-1.5 py-0.5 rounded bg-brand-800 text-white font-bold";
-          } else {
-            btn.className = "px-1.5 py-0.5 rounded bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border";
-          }
-        }
-      });
-    };
-
-    window.runPostAiTutor = function() {
-      const input = document.getElementById('postContentInput');
-      if (!input) return;
-      const text = input.value.trim();
-      if (!text) {
-        showToast("게시글 내용 원문을 작성해 주세요.");
-        return;
-      }
-
-      const btn = document.getElementById('btnRunPostAi');
-      if (btn) btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i><span>AI 교정 중...</span>`;
-
-      setTimeout(() => {
-        if (btn) btn.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles"></i><span>AI 문장 교정 실행</span>`;
-
-        if (postAiContext === 'WORK') {
-          postAiCorrectedText = "반장님께 도면 상의 지시사항 및 치수 확인을 정중하게 요청드리는 방법이 궁금합니다.";
-        } else if (postAiContext === 'SAFETY') {
-          postAiCorrectedText = "작업장 내 미끄럼 위험 요소 발견 시 안전관리자에게 조치 요청하는 표준 절차가 무엇인가요?";
-        } else {
-          postAiCorrectedText = "직장 상사 및 동료와의 소통 시 사용할 수 있는 올바른 현장 높임말 지침을 공유 부탁드립니다.";
-        }
-
-        const resText = document.getElementById('postAiResultText');
-        if (resText) resText.innerText = `"${postAiCorrectedText}"`;
-        const resPrev = document.getElementById('postAiResultPreview');
-        if (resPrev) resPrev.classList.remove('hidden');
-        showToast("AI 현장 문장 교정이 완료되었습니다.");
-      }, 700);
-    };
-
-    window.applyPostAiCorrection = function() {
-      if (!postAiCorrectedText) return;
-      const input = document.getElementById('postContentInput');
-      if (input) input.value = postAiCorrectedText;
-      const resPrev = document.getElementById('postAiResultPreview');
-      if (resPrev) resPrev.classList.add('hidden');
-      showToast("AI 교정 문장이 본문에 적용되었습니다.");
-    };
-
-    window.submitNewPost = function() {
-      const input = document.getElementById('postContentInput');
-      const catSelect = document.getElementById('postCategorySelect');
-      if (!input || !catSelect) return;
-
-      const content = input.value.trim();
-      const category = catSelect.value;
-
-      if (!content) {
-        showToast("게시글 내용을 작성해 주세요.");
-        return;
-      }
-
-      const feed = document.getElementById('postFeed');
-      if (feed) {
-        const newPostEl = document.createElement('div');
-        newPostEl.className = "p-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-1.5 animate-pulse";
-        newPostEl.setAttribute('data-category', category);
-
-        newPostEl.innerHTML = `
-          <div class="flex justify-between items-center text-[9px] text-slate-400">
-            <div class="flex items-center gap-1.5">
-              <span class="font-bold text-brand-600 dark:text-blue-400">익명 (아민 / D-2)</span>
-              <span class="px-1.5 py-0.2 bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 rounded font-bold text-[8px]">${category}</span>
-            </div>
-            <span>방금 전</span>
-          </div>
-          <p class="text-xs text-slate-800 dark:text-slate-200 leading-relaxed font-medium">
-            ${content}
-          </p>
-          <div class="flex items-center justify-between text-[9px] text-slate-400 pt-1 border-t border-slate-200/50 dark:border-slate-700/50">
-            <div class="flex items-center gap-3">
-              <button onclick="likePost(this)" class="hover:text-brand-600 active-press flex items-center gap-1">
-                <i class="fa-regular fa-thumbs-up"></i>
-                <span>0</span>
-              </button>
-              <button onclick="showToast('댓글 기능 준비 중입니다.')" class="hover:text-brand-600 active-press flex items-center gap-1">
-                <i class="fa-regular fa-comment"></i>
-                <span>0</span>
-              </button>
-            </div>
-            <button onclick="showToast('다국어 번역 기능이 적용되었습니다.')" class="text-brand-600 dark:text-blue-400 font-bold active-press">
-              <i class="fa-solid fa-language mr-1"></i>원문 보기 (Việt)
-            </button>
-          </div>
-        `;
-
-        feed.prepend(newPostEl);
-        setTimeout(() => newPostEl.classList.remove('animate-pulse'), 1000);
-      }
-
-      window.closeModal('modalCreatePost');
-      showToast("게시글이 성공적으로 등록되었습니다!");
-    };
-
-    window.openInteractiveExamModal = function() {
-      userAnswers = {};
-      const ov = document.getElementById('examViewOverview');
-      if (ov) ov.classList.remove('hidden');
-      const qv = document.getElementById('examViewQuestions');
-      if (qv) qv.classList.add('hidden');
-      const rv = document.getElementById('examViewResult');
-      if (rv) rv.classList.add('hidden');
-      const modal = document.getElementById('modalExamModule');
-      if (modal) modal.classList.remove('hidden');
-    };
-
-    window.startExamFlow = function() {
-      const ov = document.getElementById('examViewOverview');
-      if (ov) ov.classList.add('hidden');
-      const qv = document.getElementById('examViewQuestions');
-      if (qv) qv.classList.remove('hidden');
-      window.renderExamQuestions();
-    };
-
-    window.renderExamQuestions = function() {
-      const container = document.getElementById('examQuestionsContainer');
-      if (!container) return;
-      const answeredCount = Object.keys(userAnswers).length;
-      const badge = document.getElementById('examProgressBadge');
-      if (badge) badge.innerText = `진행률: ${answeredCount} / ${EXAM_QUESTIONS.length}`;
-
-      container.innerHTML = EXAM_QUESTIONS.map((q, qIdx) => `
-        <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 space-y-2">
-          <div class="flex items-center gap-1.5">
-            <span class="text-[9px] font-bold bg-brand-100 text-brand-800 dark:bg-brand-950 dark:text-blue-300 px-2 py-0.5 rounded">Q${qIdx + 1}</span>
-            <span class="text-[9px] font-medium text-slate-500">${q.badge}</span>
-          </div>
-          <h5 class="text-[11px] font-bold text-slate-900 dark:text-white">${q.question}</h5>
-          <div class="space-y-1.5">
-            ${q.options.map((opt, optIdx) => {
-              const isSelected = userAnswers[qIdx] === optIdx;
-              return `
-                <button onclick="selectOption(${qIdx}, ${optIdx})" class="w-full text-left p-2 rounded-xl text-[10px] font-medium transition border ${
-                  isSelected 
-                    ? 'bg-brand-50 border-brand-600 text-brand-900 font-bold dark:bg-brand-950/80 dark:text-white dark:border-brand-500' 
-                    : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300'
-                }">
-                  ${opt}
-                </button>
-              `;
-            }).join('')}
-          </div>
-        </div>
-      `).join('');
-
-      const btnSubmit = document.getElementById('btnSubmitExam');
-      if (btnSubmit) {
-        if (answeredCount === EXAM_QUESTIONS.length) {
-          btnSubmit.disabled = false;
-          btnSubmit.className = "w-full py-2.5 bg-brand-800 hover:bg-brand-700 text-white font-bold rounded-xl text-xs active-press shadow-md cursor-pointer";
-        } else {
-          btnSubmit.disabled = true;
-          btnSubmit.className = "w-full py-2.5 bg-slate-300 text-slate-500 font-bold rounded-xl text-xs transition cursor-not-allowed";
-        }
-      }
-    };
-
-    window.selectOption = function(qIdx, optIdx) {
-      userAnswers[qIdx] = optIdx;
-      window.renderExamQuestions();
-    };
-
-    window.submitExamAnswers = function() {
-      let score = 0;
-      EXAM_QUESTIONS.forEach((q, idx) => {
-        if (userAnswers[idx] === q.correctAnswer) {
-          score += Math.round(100 / EXAM_QUESTIONS.length);
-        }
-      });
-
-      const isPassed = score >= 80;
-
-      const qv = document.getElementById('examViewQuestions');
-      if (qv) qv.classList.add('hidden');
-      const rv = document.getElementById('examViewResult');
-      if (rv) rv.classList.remove('hidden');
-
-      const scoreEl = document.getElementById('resultScoreText');
-      if (scoreEl) scoreEl.innerText = `${score}점`;
-
-      const iconBox = document.getElementById('resultStatusIcon');
-      const titleBox = document.getElementById('resultTitle');
-      const certBox = document.getElementById('passCertificateBox');
-      const warnBox = document.getElementById('failWarningBox');
-
-      if (isPassed) {
-        if (iconBox) {
-          iconBox.className = "inline-flex p-2.5 bg-emerald-100 text-emerald-600 rounded-full mb-1";
-          iconBox.innerHTML = `<i class="fa-solid fa-circle-check text-2xl"></i>`;
-        }
-        if (titleBox) titleBox.innerText = "축하합니다! 평가 합격하셨습니다.";
-        if (certBox) certBox.classList.remove('hidden');
-        if (warnBox) warnBox.classList.add('hidden');
-
-        drawExamCanvasCert(score);
-      } else {
-        if (iconBox) {
-          iconBox.className = "inline-flex p-2.5 bg-rose-100 text-rose-600 rounded-full mb-1";
-          iconBox.innerHTML = `<i class="fa-solid fa-circle-xmark text-2xl"></i>`;
-        }
-        if (titleBox) titleBox.innerText = "아쉽습니다. 재응시가 필요합니다.";
-        if (certBox) certBox.classList.add('hidden');
-        if (warnBox) warnBox.classList.remove('hidden');
-      }
-    };
-
-    function drawExamCanvasCert(score) {
-      const canvas = document.getElementById('examCertCanvas');
-      if (!canvas) return;
-      const ctx = canvas.getContext('2d');
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      ctx.fillStyle = '#FFFFFF';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.strokeStyle = '#1E3A8A';
-      ctx.lineWidth = 5;
-      ctx.strokeRect(6, 6, canvas.width - 12, canvas.height - 12);
-
-      ctx.fillStyle = '#1E3A8A';
-      ctx.font = 'bold 15px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText('CommPass 직무 교육 이수증', canvas.width / 2, 38);
-
-      ctx.fillStyle = '#333333';
-      ctx.font = '11px sans-serif';
-      ctx.fillText('성명: NGUYEN VAN A (아민)', canvas.width / 2, 75);
-      ctx.fillText('과정: 현장 산업안전 및 직무 한국어', canvas.width / 2, 98);
-      ctx.fillText(`평가 점수: ${score}점 (합격)`, canvas.width / 2, 120);
-
-      ctx.fillStyle = '#000000';
-      ctx.fillRect(canvas.width / 2 - 22, 132, 44, 44);
-      ctx.fillStyle = '#FFFFFF';
-      ctx.fillRect(canvas.width / 2 - 16, 138, 32, 32);
-      ctx.fillStyle = '#1E3A8A';
-      ctx.fillRect(canvas.width / 2 - 8, 146, 16, 16);
-
-      ctx.fillStyle = '#666666';
-      ctx.font = '9px sans-serif';
-      ctx.fillText('검증 코드: CP-2026-883912', canvas.width / 2, 198);
-    }
-
-    window.downloadCertPdf = function() {
-      showToast("PDF 이수증이 성공적으로 다운로드되었습니다.");
-    };
-
-    window.resetExamModule = function() {
-      userAnswers = {};
-      window.startExamFlow();
+    window.closeModal = function(modalId) {
+      const el = document.getElementById(modalId);
+      if (el) el.classList.add('hidden');
     };
 
     window.openDiagnosisModal = function() {
@@ -1750,118 +1313,532 @@
       if (modal) modal.classList.remove('hidden');
     };
 
-    window.closeModal = function(id) {
-      const modal = document.getElementById(id);
-      if (modal) modal.classList.add('hidden');
-    };
-
-    window.submitDiagnosis = function() {
-      window.closeModal('modalDiagnosis');
-      showToast("간편진단 결과에 따라 체크리스트가 갱신되었습니다.");
-    };
-
     window.openOcrModal = function() {
       const modal = document.getElementById('modalOcr');
       if (modal) modal.classList.remove('hidden');
     };
 
-    window.runOcrSimulation = function() {
-      const box = document.getElementById('ocrBox');
-      if (box) {
-        box.innerHTML = `<i class="fa-solid fa-spinner fa-spin text-lg text-brand-500"></i><span class="text-[9px] mt-1">스캔 중...</span>`;
+    window.openInteractiveExamModal = function() {
+      const modal = document.getElementById('modalExamModule');
+      if (modal) {
+        modal.classList.remove('hidden');
+        resetExamModule();
       }
+    };
+
+    window.openCreatePostModal = function() {
+      const modal = document.getElementById('modalCreatePost');
+      if (modal) modal.classList.remove('hidden');
+    };
+
+    window.runOcrSimulation = function() {
+      showToast('신분증 정보 인식 중...');
       setTimeout(() => {
-        window.closeModal('modalOcr');
-        showToast("외국인등록증 스캔 완료 (만료일: 2027.02.28)");
-        if (box) {
-          box.innerHTML = `<i class="fa-solid fa-camera text-xl mb-1"></i><span class="text-[9px]">터치하여 스캔 실행</span>`;
+        closeModal('modalOcr');
+        const doc = docData.find(d => d.name.includes('ARC'));
+        if (doc) { doc.valid = true; doc.date = 'OCR 갱신 완료'; }
+        
+        const task = checklistData.find(t => t.id === '4');
+        if (task) task.done = true;
+
+        renderDocs();
+        renderChecklist();
+        showToast('ARC 정보(E-9)가 안전하게 연동되었습니다.');
+      }, 1500);
+    };
+
+    window.submitDiagnosis = function() {
+      showToast('취업 가능성 진단 완료!');
+      setTimeout(() => {
+        closeModal('modalDiagnosis');
+        showToast('체크리스트가 업데이트되었습니다.');
+        resetChecklist();
+      }, 500);
+    };
+
+    window.renderChecklist = function() {
+      const container = document.getElementById('checklistContainer');
+      const progText = document.getElementById('checklistProgressText');
+      const progBar = document.getElementById('checklistProgressBar');
+      const focalBox = document.getElementById('focalTaskBox');
+
+      if (!container) return;
+      container.innerHTML = '';
+
+      let doneCount = 0;
+      let activeFocal = null;
+
+      checklistData.forEach(item => {
+        if (item.done) doneCount++;
+        if (!item.done && item.focal && !activeFocal) activeFocal = item;
+
+        const iconClass = item.done ? 'fa-circle-check text-brand-600 dark:text-blue-500' : 'fa-circle text-slate-300 dark:text-slate-600';
+        const textClass = item.done ? 'line-through text-slate-400 dark:text-slate-500' : 'text-slate-800 dark:text-slate-200 font-bold';
+        
+        container.innerHTML += `
+          <div class="flex items-center gap-2 p-2 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-100 dark:border-slate-800 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition" onclick="toggleTask('${item.id}')">
+            <i class="fa-regular ${iconClass} text-xs w-4"></i>
+            <span class="${textClass}">${item.title}</span>
+          </div>
+        `;
+      });
+
+      const ratio = Math.round((doneCount / checklistData.length) * 100);
+      if (progText) progText.innerText = ratio + '%';
+      if (progBar) progBar.style.width = ratio + '%';
+
+      if (focalBox) {
+        if (activeFocal) {
+          focalBox.classList.remove('hidden');
+          const ft = document.getElementById('focalTaskTitle');
+          if (ft) ft.innerText = activeFocal.title;
+        } else {
+          focalBox.classList.add('hidden');
+        }
+      }
+    };
+
+    window.toggleTask = function(id) {
+      const item = checklistData.find(i => i.id === id);
+      if (item) {
+        item.done = !item.done;
+        renderChecklist();
+      }
+    };
+
+    window.resetChecklist = function() {
+      checklistData = JSON.parse(JSON.stringify(INITIAL_CHECKLIST_DATA));
+      renderChecklist();
+    };
+
+    window.renderDocs = function() {
+      const grid = document.getElementById('documentGrid');
+      if (!grid) return;
+      grid.innerHTML = '';
+
+      docData.forEach(doc => {
+        const isValid = doc.valid;
+        const icon = isValid ? '<i class="fa-solid fa-circle-check text-emerald-500"></i>' : '<i class="fa-solid fa-circle-exclamation text-amber-500"></i>';
+        const bgClass = isValid ? 'bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700' : 'bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-800/60';
+        
+        grid.innerHTML += `
+          <div class="${bgClass} p-2 rounded-2xl border text-[9px] flex flex-col justify-between h-[65px] active-press cursor-pointer">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-slate-800 dark:text-slate-200 truncate max-w-[90%]">${doc.name}</span>
+              ${icon}
+            </div>
+            <div class="text-[8.5px] text-slate-500 dark:text-slate-400">${doc.date}</div>
+          </div>
+        `;
+      });
+    };
+
+    /* EXAM MODULE LOGIC */
+    window.startExamFlow = function() {
+      document.getElementById('examViewOverview').classList.add('hidden');
+      document.getElementById('examViewResult').classList.add('hidden');
+      document.getElementById('examViewQuestions').classList.remove('hidden');
+      renderExamQuestions();
+      updateExamProgress();
+    };
+
+    window.resetExamModule = function() {
+      userAnswers = {};
+      document.getElementById('examViewOverview').classList.remove('hidden');
+      document.getElementById('examViewQuestions').classList.add('hidden');
+      document.getElementById('examViewResult').classList.add('hidden');
+      document.getElementById('passCertificateBox').classList.add('hidden');
+      document.getElementById('failWarningBox').classList.add('hidden');
+    };
+
+    window.renderExamQuestions = function() {
+      const container = document.getElementById('examQuestionsContainer');
+      container.innerHTML = '';
+
+      EXAM_QUESTIONS.forEach((q, idx) => {
+        let optionsHtml = '';
+        q.options.forEach((opt, optIdx) => {
+          const isSelected = userAnswers[q.id] === optIdx;
+          const bgClass = isSelected ? 'bg-brand-50 border-brand-500 text-brand-700 font-bold' : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300';
+          const icon = isSelected ? '<i class="fa-solid fa-circle-dot text-brand-600"></i>' : '<i class="fa-regular fa-circle text-slate-400"></i>';
+
+          optionsHtml += `
+            <div onclick="selectExamAnswer(${q.id}, ${optIdx})" class="p-2.5 rounded-xl border ${bgClass} flex items-center gap-2 cursor-pointer transition active-press text-[10px]">
+              ${icon} <span>${opt}</span>
+            </div>
+          `;
+        });
+
+        container.innerHTML += `
+          <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-3 rounded-2xl shadow-sm space-y-2">
+            <div class="flex justify-between items-start">
+              <span class="px-2 py-0.5 rounded text-[8px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">${q.badge}</span>
+              <span class="text-[9px] font-bold text-slate-400">문항 ${idx + 1}</span>
+            </div>
+            <p class="font-bold text-[10px] text-slate-900 dark:text-white leading-relaxed">
+              Q${idx + 1}. ${q.question}
+            </p>
+            <div class="space-y-1.5 mt-2">
+              ${optionsHtml}
+            </div>
+          </div>
+        `;
+      });
+    };
+
+    window.selectExamAnswer = function(questionId, optionIndex) {
+      userAnswers[questionId] = optionIndex;
+      renderExamQuestions();
+      updateExamProgress();
+    };
+
+    window.updateExamProgress = function() {
+      const answeredCount = Object.keys(userAnswers).length;
+      const total = EXAM_QUESTIONS.length;
+      const badge = document.getElementById('examProgressBadge');
+      const btn = document.getElementById('btnSubmitExam');
+
+      if (badge) badge.innerText = `진행률: ${answeredCount} / ${total}`;
+
+      if (answeredCount === total) {
+        btn.disabled = false;
+        btn.classList.remove('bg-slate-300', 'text-slate-500', 'cursor-not-allowed');
+        btn.classList.add('bg-brand-600', 'hover:bg-brand-500', 'text-white', 'shadow-md', 'active-press');
+      }
+    };
+
+    window.submitExamAnswers = function() {
+      showToast('답안 채점 중입니다...');
+      
+      setTimeout(() => {
+        let score = 0;
+        EXAM_QUESTIONS.forEach(q => {
+          if (userAnswers[q.id] === q.correctAnswer) {
+            score += Math.round(100 / EXAM_QUESTIONS.length);
+          }
+        });
+        
+        if (score === 99) score = 100;
+
+        document.getElementById('examViewQuestions').classList.add('hidden');
+        document.getElementById('examViewResult').classList.remove('hidden');
+
+        document.getElementById('resultScoreText').innerText = score + '점';
+
+        const iconBox = document.getElementById('resultStatusIcon');
+        const passBox = document.getElementById('passCertificateBox');
+        const failBox = document.getElementById('failWarningBox');
+
+        if (score >= 80) {
+          iconBox.innerHTML = '<i class="fa-solid fa-trophy text-3xl text-amber-400"></i>';
+          iconBox.className = "inline-flex p-3 rounded-full bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 mb-1";
+          passBox.classList.remove('hidden');
+          failBox.classList.add('hidden');
+          
+          generateCanvasCertificate();
+          
+          showToast('축하합니다! 80점 이상으로 평가에 통과했습니다.');
+          
+          const task = checklistData.find(t => t.id === '6');
+          if (task) task.done = true;
+          renderChecklist();
+
+        } else {
+          iconBox.innerHTML = '<i class="fa-solid fa-face-frown text-3xl text-rose-500"></i>';
+          iconBox.className = "inline-flex p-3 rounded-full bg-rose-50 dark:bg-rose-950 border border-rose-200 dark:border-rose-800 mb-1";
+          passBox.classList.add('hidden');
+          failBox.classList.remove('hidden');
+          showToast('아쉽게도 합격 기준에 도달하지 못했습니다.');
         }
       }, 1000);
     };
 
-    window.showCert = function(title, certId) {
-      const titleEl = document.getElementById('certModalTitle');
-      if (titleEl) titleEl.innerText = title;
-      const idEl = document.getElementById('certModalId');
-      if (idEl) idEl.innerText = certId;
-      const modal = document.getElementById('modalCert');
-      if (modal) modal.classList.remove('hidden');
+    window.generateCanvasCertificate = function() {
+      const canvas = document.getElementById('examCertCanvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      const qrBox = document.getElementById('qrCanvas');
-      if (qrBox) {
-        qrBox.innerHTML = '';
-        if (typeof QRCode !== 'undefined') {
-          try {
-            new QRCode(qrBox, {
-              text: `https://bridgekorea.kr/verify?id=${certId}`,
-              width: 44,
-              height: 44,
-            });
-          } catch (err) {
-            console.error("QRCode generation error:", err);
-          }
+      ctx.strokeStyle = '#d97706';
+      ctx.lineWidth = 4;
+      ctx.strokeRect(5, 5, canvas.width - 10, canvas.height - 10);
+
+      ctx.fillStyle = '#1e3a8a';
+      ctx.font = 'bold 16px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('현장 직무 및 산업안전 이수증', canvas.width / 2, 35);
+
+      ctx.font = '10px sans-serif';
+      ctx.fillStyle = '#64748b';
+      ctx.fillText('Certificate of Field Safety & Job Proficiency', canvas.width / 2, 50);
+
+      ctx.beginPath();
+      ctx.moveTo(30, 60);
+      ctx.lineTo(canvas.width - 30, 60);
+      ctx.strokeStyle = '#e2e8f0';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      ctx.fillStyle = '#0f172a';
+      ctx.font = 'bold 12px sans-serif';
+      ctx.textAlign = 'left';
+      ctx.fillText('성 명 : 아민 (Nguyen Van A)', 30, 90);
+      ctx.fillText('발급번호 : LC-EXAM-202607', 30, 110);
+      ctx.fillText('합격점수 : 100점 (PASS)', 30, 130);
+      ctx.fillText('발급일자 : 2026년 07월 15일', 30, 150);
+
+      ctx.font = '10px sans-serif';
+      ctx.fillStyle = '#334155';
+      ctx.textAlign = 'center';
+      ctx.fillText('위 사람은 LingCommPass가 주관하는', canvas.width / 2, 180);
+      ctx.fillText('현장 직무 및 산업안전 평가 과정을 이수하였음.', canvas.width / 2, 195);
+
+      ctx.fillStyle = '#2563eb';
+      ctx.font = 'bold 12px sans-serif';
+      ctx.fillText('LingCommPass Verification Center', canvas.width / 2, 215);
+    };
+
+    window.downloadCertPdf = function() {
+      showToast('PDF 파일이 기기에 저장되었습니다.');
+      const task = checklistData.find(t => t.id === '6');
+      if (task) {
+        task.done = true;
+        renderChecklist();
+      }
+    };
+
+    /* AI Tutor Logic */
+    window.switchAiSubMode = function(mode) {
+      document.getElementById('aiSubModeTutor').classList.add('hidden');
+      document.getElementById('aiSubModeChat').classList.add('hidden');
+      
+      const btnTutor = document.getElementById('btnAiModeTutor');
+      const btnChat = document.getElementById('btnAiModeChat');
+      
+      btnTutor.className = "px-2 py-1 rounded-lg text-white hover:text-indigo-200 transition-all";
+      btnChat.className = "px-2 py-1 rounded-lg text-white hover:text-indigo-200 transition-all";
+
+      if(mode === 'tutor') {
+        document.getElementById('aiSubModeTutor').classList.remove('hidden');
+        btnTutor.className = "px-2 py-1 rounded-lg bg-white text-indigo-900 transition-all";
+      } else {
+        document.getElementById('aiSubModeChat').classList.remove('hidden');
+        btnChat.className = "px-2 py-1 rounded-lg bg-white text-indigo-900 transition-all";
+      }
+    };
+
+    window.setAiContext = function(ctx) {
+      activeAiContext = ctx;
+      
+      const ctxMap = {
+        'WORK': { id: 'ctxBtnWORK', label: '현장·직무 (공구/공정) 모드', bg: 'bg-brand-900', text: 'text-white' },
+        'SAFETY': { id: 'ctxBtnSAFETY', label: '안전·수칙 (위험보고) 모드', bg: 'bg-slate-800', text: 'text-white' },
+        'CULTURE': { id: 'ctxBtnCULTURE', label: '직장·격식 (상사보고) 모드', bg: 'bg-slate-800', text: 'text-white' }
+      };
+
+      Object.keys(ctxMap).forEach(key => {
+        const btn = document.getElementById(ctxMap[key].id);
+        if(key === ctx) {
+          btn.className = `p-2 rounded-2xl border text-left bg-brand-900 text-white border-brand-900 shadow-sm transition`;
+        } else {
+          btn.className = `p-2 rounded-2xl border text-left bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 transition`;
         }
+      });
+
+      document.getElementById('ctxLabelText').innerText = ctxMap[ctx].label;
+    };
+
+    window.fillAiSample = function(text, ctx) {
+      setAiContext(ctx);
+      document.getElementById('aiTutorInput').value = text;
+    };
+
+    window.runAiTutorCorrection = function() {
+      const inputVal = document.getElementById('aiTutorInput').value.trim();
+      if(!inputVal) {
+        showToast("원문을 먼저 입력해주세요.");
+        return;
+      }
+
+      const btn = document.getElementById('btnRunAiTutor');
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i><span>AI 분석 중...</span>`;
+
+      setTimeout(() => {
+        document.getElementById('aiTutorResultBox').classList.remove('hidden');
+        const outputDiv = document.getElementById('aiTutorOutputText');
+        const termsDiv = document.getElementById('aiTutorTerms');
+        const adviceDiv = document.getElementById('aiTutorAdvice');
+
+        let corrected = "";
+        let termsHtml = "";
+        let advicesHtml = "";
+
+        if (activeAiContext === 'WORK') {
+          corrected = "반장님, 어제 전동드라이버가 고장나서 조립 공정 작업을 진행하지 못했습니다.";
+          termsHtml = `
+            <div class="flex items-center gap-1.5 text-[9px] bg-slate-50 dark:bg-slate-800 p-1.5 rounded-lg border border-slate-200 dark:border-slate-700">
+              <span class="line-through text-slate-400">드라이버 고장나서 일을 못했어요</span>
+              <i class="fa-solid fa-arrow-right text-brand-500"></i>
+              <span class="font-bold text-brand-600 dark:text-blue-400">전동드라이버가 고장나서 작업을 진행하지 못했습니다</span>
+            </div>
+          `;
+          advicesHtml = `
+            <li>현장에서는 단순한 '일'보다는 구체적인 '공정'이나 '작업'이라는 단어를 쓰는 것이 명확합니다.</li>
+            <li>공구 명칭은 정확하게(예: 전동드라이버) 전달해야 수리나 교체가 빠릅니다.</li>
+          `;
+        } else if (activeAiContext === 'SAFETY') {
+          corrected = "조장님, 작업장 바닥에 물기가 있어 미끄러짐(전도) 사고 위험이 있습니다. 안전 조치 부탁드립니다.";
+          termsHtml = `
+            <div class="flex items-center gap-1.5 text-[9px] bg-slate-50 dark:bg-slate-800 p-1.5 rounded-lg border border-slate-200 dark:border-slate-700">
+              <span class="line-through text-slate-400">물이 있어서 위험해요 치워주세요</span>
+              <i class="fa-solid fa-arrow-right text-brand-500"></i>
+              <span class="font-bold text-rose-600 dark:text-rose-400">물기가 있어 미끄러짐 사고 위험이 있습니다. 안전 조치 부탁드립니다.</span>
+            </div>
+          `;
+          advicesHtml = `
+            <li>위험 상황 보고 시 구체적인 위험 요인('물기')과 예상되는 사고('미끄러짐')를 함께 말하세요.</li>
+            <li>'치워주세요' 대신 '안전 조치 부탁드립니다'와 같은 표준 용어가 적절합니다.</li>
+          `;
+        } else {
+          corrected = "팀장님, 이 조립 도면의 특정 치수 부분이 이해가 잘 안 되는데, 혹시 시간 되실 때 설명 부탁드려도 될까요?";
+          termsHtml = `
+            <div class="flex items-center gap-1.5 text-[9px] bg-slate-50 dark:bg-slate-800 p-1.5 rounded-lg border border-slate-200 dark:border-slate-700">
+              <span class="line-through text-slate-400">이 도면 무슨 말인지 잘 모르겠습니다</span>
+              <i class="fa-solid fa-arrow-right text-brand-500"></i>
+              <span class="font-bold text-indigo-600 dark:text-indigo-400">이 조립 도면의 특정 치수 부분이 이해가 잘 안 되는데, 설명 부탁드려도 될까요?</span>
+            </div>
+          `;
+          advicesHtml = `
+            <li>상사에게 질문할 때는 '무슨 말인지 모르겠다'는 직설적인 표현보다, '이해가 잘 안 된다'라고 완곡하게 표현하세요.</li>
+            <li>질문 전 정중하게 '시간 되실 때'를 덧붙이면 훨씬 격식 있는 태도가 됩니다.</li>
+          `;
+        }
+
+        outputDiv.innerText = corrected;
+        lastCorrectedText = corrected;
+        termsDiv.innerHTML = termsHtml;
+        adviceDiv.innerHTML = advicesHtml;
+
+        btn.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles"></i><span>AI 교정 및 현장 표준어 분석</span>`;
+        showToast("AI 현장 언어 교정이 완료되었습니다.");
+      }, 1000);
+    };
+
+    window.copyCorrectedText = function() {
+      if(lastCorrectedText) {
+        showToast("교정된 문장이 클립보드에 복사되었습니다.");
       }
     };
 
     window.sendAiMessage = function() {
       const input = document.getElementById('chatInput');
-      if (!input) return;
       const text = input.value.trim();
-      if (!text) return;
+      if(!text) return;
 
-      const container = document.getElementById('chatBox');
-      if (container) {
-        container.innerHTML += `
-          <div class="flex justify-end">
-            <div class="bg-indigo-600 text-white p-2 rounded-2xl rounded-tr-none max-w-[85%] text-[10px] leading-relaxed">
-              ${text}
+      const chatBox = document.getElementById('chatBox');
+      chatBox.innerHTML += `
+        <div class="flex items-start gap-2 justify-end">
+          <div class="bg-indigo-100 dark:bg-indigo-900/50 p-2 rounded-2xl rounded-tr-none max-w-[85%] text-slate-800 dark:text-slate-200 text-[10px] leading-relaxed border border-indigo-200 dark:border-indigo-800">
+            ${text}
+          </div>
+        </div>
+      `;
+      input.value = '';
+      
+      setTimeout(() => {
+        chatBox.innerHTML += `
+          <div class="flex items-start gap-2">
+            <div class="w-5 h-5 rounded-full bg-indigo-600 text-white flex items-center justify-center text-[9px] shrink-0">
+              <i class="fa-solid fa-robot"></i>
+            </div>
+            <div class="bg-slate-100 dark:bg-slate-800 p-2 rounded-2xl rounded-tl-none max-w-[85%] text-slate-800 dark:text-slate-200 text-[10px] leading-relaxed border border-slate-200 dark:border-slate-700">
+              해당 질문에 대한 법무부 출입국 및 고용허가제 지침 기반 답변입니다. D-2 비자에서 인턴십은 가능하지만 사전에 '시간제 취업 허가'를 받아야 합니다.
             </div>
           </div>
         `;
-        input.value = '';
-        container.scrollTop = container.scrollHeight;
+        chatBox.scrollTop = chatBox.scrollHeight;
+      }, 1000);
+    };
 
-        setTimeout(() => {
-          container.innerHTML += `
-            <div class="flex items-start gap-2">
-              <div class="w-5 h-5 rounded-full bg-indigo-600 text-white flex items-center justify-center text-[9px] shrink-0">
-                <i class="fa-solid fa-robot"></i>
-              </div>
-              <div class="bg-slate-100 dark:bg-slate-800 p-2 rounded-2xl rounded-tl-none max-w-[85%] text-slate-800 dark:text-slate-200 text-[10px] leading-relaxed">
-                D-2 유학생이 주말 시간제 취업을 하려면 학교 담당자의 시간제 취업 추천서와 하이코리아 사전 신고 승인이 필요합니다.
-              </div>
-            </div>
-          `;
-          container.scrollTop = container.scrollHeight;
-        }, 600);
+    /* CommPassver2 Post AI Integration Logic */
+    window.setPostAiContext = function(ctx) {
+      postAiContext = ctx;
+      const btns = ['postCtxWORK', 'postCtxSAFETY', 'postCtxCULTURE'];
+      btns.forEach(id => {
+        const el = document.getElementById(id);
+        if(id.includes(ctx)) {
+          el.className = "px-1.5 py-0.5 rounded bg-indigo-600 text-white font-bold active-press";
+        } else {
+          el.className = "px-1.5 py-0.5 rounded bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border active-press";
+        }
+      });
+    };
+
+    window.runPostAiTutor = function() {
+      const inputVal = document.getElementById('postContentInput').value.trim();
+      if(!inputVal) {
+        showToast("게시글 본문을 먼저 작성해주세요.");
+        return;
+      }
+
+      const btn = document.getElementById('btnRunPostAi');
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i><span>AI 교정 중...</span>`;
+
+      setTimeout(() => {
+        document.getElementById('postAiResultPreview').classList.remove('hidden');
+        const outputDiv = document.getElementById('postAiResultText');
+
+        if (postAiContext === 'WORK') {
+          postAiCorrectedText = "현장에서 프레스 기계 조작할 때, 정확한 작업 지시 용어 아시는 분 계신가요?";
+        } else if (postAiContext === 'SAFETY') {
+          postAiCorrectedText = "안전보건공단에서 제공하는 위험성 평가표 양식 다운로드 및 작성 팁 공유합니다.";
+        } else {
+          postAiCorrectedText = "직장 상사에게 메일 보낼 때 '수고하셨습니다' 대신 어떤 표현이 더 정중한가요?";
+        }
+
+        outputDiv.innerText = postAiCorrectedText;
+        btn.innerHTML = `<i class="fa-solid fa-sparkles"></i><span>AI 문장 교정 실행</span>`;
+        showToast("AI 교정본이 생성되었습니다.");
+      }, 1000);
+    };
+
+    window.applyPostAiCorrection = function() {
+      if(postAiCorrectedText) {
+        document.getElementById('postContentInput').value = postAiCorrectedText;
+        document.getElementById('postAiResultPreview').classList.add('hidden');
+        showToast("교정된 내용이 본문에 적용되었습니다.");
       }
     };
 
-    function showToast(msg) {
-      const container = document.getElementById('toastBox');
-      if (!container) return;
-      const toast = document.createElement('div');
-      toast.className = "bg-slate-900 text-white dark:bg-white dark:text-slate-900 text-[10px] px-3 py-1.5 rounded-full shadow-2xl flex items-center gap-1 transition-all duration-300 pointer-events-auto border border-slate-700";
-      toast.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-400"></i><span>${msg}</span>`;
-      container.appendChild(toast);
+    window.submitNewPost = function() {
+      const inputVal = document.getElementById('postContentInput').value.trim();
+      if(!inputVal) {
+        showToast("내용을 입력해주세요.");
+        return;
+      }
 
+      showToast("게시글이 커뮤니티에 등록되었습니다.");
       setTimeout(() => {
-        toast.style.opacity = '0';
-        setTimeout(() => toast.remove(), 300);
-      }, 2000);
-    }
+        closeModal('modalCreatePost');
+        document.getElementById('postContentInput').value = '';
+        document.getElementById('postAiResultPreview').classList.add('hidden');
+      }, 500);
+    };
 
+    /* Additional Functions for LingCommPass Original HTML Stubs & Features */
     window.toggleFullscreen = function() {
-      const dev = document.getElementById('phoneDevice');
-      if (!dev) return;
-      dev.classList.toggle('fullscreen-mode');
-      const isFull = dev.classList.contains('fullscreen-mode');
-      const btn = document.getElementById('btnFullscreen');
-      if (btn) {
-        btn.innerHTML = isFull 
-          ? `<i class="fa-solid fa-compress mr-1"></i>프레임` 
-          : `<i class="fa-solid fa-expand mr-1"></i>전체화면`;
+      const phone = document.getElementById('phoneDevice');
+      if (phone) {
+        phone.classList.toggle('fullscreen-mode');
+        const btn = document.getElementById('btnFullscreen');
+        if(phone.classList.contains('fullscreen-mode')) {
+          if(btn) btn.innerHTML = '<i class="fa-solid fa-compress mr-1"></i>축소화면';
+        } else {
+          if(btn) btn.innerHTML = '<i class="fa-solid fa-expand mr-1"></i>전체화면';
+        }
       }
     };
 
@@ -1870,47 +1847,136 @@
     };
 
     window.changeLanguage = function(lang) {
-      showToast(`언어 설정: ${lang.toUpperCase()}`);
+      showToast("언어 설정이 변경되었습니다.");
     };
 
-    window.triggerFocalTask = function() {
-      showToast("TOPIK 성적표 업로드 화면으로 이동합니다.");
+    window.switchRole = function() {
+      const badge = document.getElementById('roleBadgeText');
+      const btnLabel = document.getElementById('roleButtonLabel');
+      
+      if (currentRole === 'WORKER') {
+        currentRole = 'MANAGER';
+        if(badge) badge.innerText = "한국인 관리자 모드";
+        if(btnLabel) btnLabel.innerText = "관리자";
+        showToast('한국인 관리자 모드로 전환되었습니다.');
+      } else {
+        currentRole = 'WORKER';
+        if(badge) badge.innerText = "외국인 회원 모드";
+        if(btnLabel) btnLabel.innerText = "외국인";
+        showToast('외국인 근로자 모드로 전환되었습니다.');
+      }
     };
 
     window.openHiKorea = function() {
-      window.open('https://www.hikorea.go.kr', '_blank');
-    };
-
-    window.applyJob = function(company) {
-      showToast(`${company}에 1-Click 바로 지원이 완료되었습니다!`);
-    };
-
-    window.playVideo = function(title) {
-      showToast(`${title} 강의 플레이어가 실행됩니다.`);
-    };
-
-    window.openUploadModal = function() {
-      showToast("서류 추가 모달을 실행합니다.");
+      showToast("하이코리아 모바일 웹으로 이동합니다.");
     };
 
     window.openAiResumeModal = function() {
-      showToast("AI 이력서 / 자기소개서 생성기를 실행합니다.");
+      showToast("AI 자소서 생성 기능이 실행됩니다.");
     };
 
-    window.onload = function() {
-      window.renderChecklist();
-      window.renderDocs();
-      window.filterEduCourses(); // Initial filter render for Education tab
+    window.playVideo = function(title) {
+      showToast(title + " 강의 재생을 시작합니다.");
+    };
 
-      // Realtime Clock
-      setInterval(() => {
+    window.applyJob = function(company) {
+      showToast(company + "에 1-Click 지원이 완료되었습니다!");
+    };
+
+    window.triggerFocalTask = function() {
+      openTopikModal();
+    };
+
+    window.openUploadModal = function() {
+      openTopikModal();
+    };
+
+    window.openTopikModal = function() {
+      const modal = document.getElementById('modalTopik');
+      if (modal) modal.classList.remove('hidden');
+    };
+
+    window.submitTopikScore = function() {
+      const topikDoc = docData.find(d => d.name.includes('TOPIK'));
+      if (topikDoc) {
+        topikDoc.valid = true;
+        const level = document.getElementById('topikLevel').value || '3급';
+        topikDoc.date = '인증 완료 (' + level + ')';
+      }
+
+      const topikTask = checklistData.find(i => i.id === '5');
+      if (topikTask) {
+        topikTask.done = true;
+      }
+
+      renderDocs();
+      renderChecklist();
+
+      closeModal('modalTopik');
+      showToast("한국어 성적(TOPIK)이 성공적으로 등록되었습니다.");
+    };
+
+    window.showToast = function(message) {
+      const toastBox = document.getElementById('toastBox');
+      if (!toastBox) return;
+      const toast = document.createElement('div');
+      toast.className = "bg-slate-800 dark:bg-slate-700 text-white px-4 py-2 rounded-full shadow-lg text-[10px] font-bold transition-all duration-300 transform translate-y-0 opacity-100 pointer-events-auto";
+      toast.innerText = message;
+      toastBox.appendChild(toast);
+      
+      setTimeout(() => {
+        toast.classList.remove('translate-y-0', 'opacity-100');
+        toast.classList.add('translate-y-4', 'opacity-0');
+        setTimeout(() => toast.remove(), 300);
+      }, 2500);
+    };
+
+    window.showCert = function(title, certId) {
+      const titleEl = document.getElementById('certModalTitle');
+      if (titleEl) titleEl.innerText = title;
+      
+      const idEl = document.getElementById('certModalId');
+      if (idEl) idEl.innerText = certId;
+      
+      const modal = document.getElementById('modalCert');
+      if (modal) modal.classList.remove('hidden');
+
+      const qrContainer = document.getElementById('qrCanvas');
+      if (qrContainer) {
+        qrContainer.innerHTML = '';
+        new QRCode(qrContainer, {
+          text: `https://lingcommpass.app/verify/${certId}`,
+          width: 60,
+          height: 60,
+          colorDark: "#d97706",
+          colorLight: "#ffffff",
+          correctLevel: QRCode.CorrectLevel.M
+        });
+      }
+    };
+
+    // Live Clock functionality
+    setInterval(() => {
+      const clock = document.getElementById('phoneClock');
+      if(clock) {
         const now = new Date();
-        const hrs = String(now.getHours()).padStart(2, '0');
-        const mins = String(now.getMinutes()).padStart(2, '0');
-        const clockEl = document.getElementById('phoneClock');
-        if (clockEl) clockEl.innerText = `${hrs}:${mins}`;
-      }, 1000);
+        clock.innerText = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+      }
+    }, 1000);
+
+    /* Initializers */
+    window.onload = function() {
+      renderChecklist();
+      renderDocs();
+      filterEduCourses();
+      
+      const clock = document.getElementById('phoneClock');
+      if(clock) {
+        const now = new Date();
+        clock.innerText = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+      }
     };
+
   </script>
 </body>
 </html>
